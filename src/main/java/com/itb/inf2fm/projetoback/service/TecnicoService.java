@@ -1,7 +1,8 @@
 package com.itb.inf2fm.projetoback.service;
 
+import com.itb.inf2fm.projetoback.exceptions.NotFound;
 import com.itb.inf2fm.projetoback.model.Tecnico;
-import com.itb.inf2fm.projetoback.model.TecnicoRepository;
+import com.itb.inf2fm.projetoback.repository.TecnicoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -28,18 +29,28 @@ public class TecnicoService {
         return lista;
     }
 
-    public Tecnico findAllById(long id) {
-        Tecnico tecnicoEncontrado = tecnicoRepository.findAllById(id);
-        return tecnicoEncontrado;
+    public Tecnico findById(long id) {
+        return tecnicoRepository.findById(id).orElse(null);
     }
 
     @Transactional
-    public Tecnico update(Tecnico _tecnico) {
-        Tecnico tecnicoEncontrado = tecnicoRepository.findAllById(_tecnico.getId());
-        if (tecnicoEncontrado.getId() > 0)
-            return tecnicoRepository.save(tecnicoEncontrado);
-        else
-            return new Tecnico(0, "Produto não encontrado");
+    public Tecnico update(Tecnico tecnico) {
+        Tecnico existingTecnico = tecnicoRepository.findById(tecnico.getId())
+                .orElseThrow(() -> new NotFound("Tecnico não encontrado"));
+        existingTecnico.setNome(tecnico.getNome());
+        existingTecnico.setEmail(tecnico.getEmail());
+        existingTecnico.setSenha(tecnico.getSenha());
+        existingTecnico.setTelefone(tecnico.getTelefone());
+        existingTecnico.setCnpj(tecnico.getCnpj());
+        existingTecnico.setEspecialidade(tecnico.getEspecialidade());
+        existingTecnico.setDataNascimento(tecnico.getDataNascimento());
+        existingTecnico.setEstado(tecnico.getEstado());
+        existingTecnico.setCidade(tecnico.getCidade());
+        existingTecnico.setBairro(tecnico.getBairro());
+        existingTecnico.setRua(tecnico.getRua());
+        existingTecnico.setCasa(tecnico.getCasa());
+        existingTecnico.setComplemento(tecnico.getComplemento());
+        return tecnicoRepository.save(existingTecnico);
     }
 
     @Transactional

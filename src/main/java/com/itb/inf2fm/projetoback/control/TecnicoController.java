@@ -13,10 +13,10 @@ import java.util.List;
 @RequestMapping("/tecnico")
 public class TecnicoController {
 
-        // criação do objeto de serviço
+
         final TecnicoService tecnicoService;
 
-        // Injeção de Dependência
+
         public TecnicoController(TecnicoService _tecnicoService) {
             this.tecnicoService = _tecnicoService;
         }
@@ -35,9 +35,10 @@ public class TecnicoController {
                     .body(tecnicoService.findAll());
         }
 
-        @PutMapping
-        public ResponseEntity<Object> updateTecnico(@RequestBody Tecnico tecnico){
-            return ResponseEntity.status(HttpStatus.CREATED)
+        @PutMapping("/{id}")
+        public ResponseEntity<Object> updateTecnico( @PathVariable Long id, @RequestBody Tecnico tecnico){
+            tecnico.setId(id);
+            return ResponseEntity.status(HttpStatus.OK)
                     .body(tecnicoService.update(tecnico));
         }
 

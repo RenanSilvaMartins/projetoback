@@ -1,8 +1,10 @@
 package com.itb.inf2fm.projetoback.model;
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
-import java.util.Date;
+import java.time.LocalDate;
+
 
 @Entity
 @Table(name = "Tecnico")
@@ -23,16 +25,24 @@ public class Tecnico {
 
     private String nome;
     private String email;
+    private String senha;
     private String telefone;
     private String cnpj;
     private String especialidade;
-    private String dataNascimento;
+    @DateTimeFormat(pattern = "dd/MM/yyyy")
+    private LocalDate dataNascimento;
     private String estado;
     private String cidade;
     private String bairro;
     private String rua;
     private String casa;
     private String complemento;
+
+    @Transient
+    private String mensagemErro = "";
+
+    @Transient
+    private boolean isValid = true;
 
     public long getId() {
         return id;
@@ -56,6 +66,14 @@ public class Tecnico {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getSenha() {
+        return senha;
+    }
+
+    public void setSenha(String senha) {
+        this.senha = senha;
     }
 
     public String getTelefone() {
@@ -82,11 +100,11 @@ public class Tecnico {
         this.especialidade = especialidade;
     }
 
-    public String getDataNascimento() {
+    public LocalDate getDataNascimento() {
         return dataNascimento;
     }
 
-    public void setDataNascimento(String dataNascimento) {
+    public void setDataNascimento(LocalDate dataNascimento) {
         this.dataNascimento = dataNascimento;
     }
 
