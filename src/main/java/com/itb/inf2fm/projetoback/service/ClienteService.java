@@ -64,6 +64,7 @@ public class ClienteService {
         return clienteRepository.findByUsuarioEmail(email);
     }
 
+    @SuppressWarnings("null")
     @Transactional
     public Cliente save(Cliente cliente) {
         try {
