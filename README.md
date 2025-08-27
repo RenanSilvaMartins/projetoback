@@ -115,3 +115,5 @@ POST /regiao/initialize
 ## 📞 Suporte
 
 Para dúvidas sobre integração com Frontend, consulte os arquivos de exemplo na pasta `docs/examples/`.
+
+Λεονάρτο εστ ηέρε
