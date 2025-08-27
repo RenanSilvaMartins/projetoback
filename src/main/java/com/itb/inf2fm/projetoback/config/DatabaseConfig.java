@@ -3,15 +3,18 @@ package com.itb.inf2fm.projetoback.config;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import javax.sql.DataSource;
 
-@Configuration
+// Configuração desabilitada - usando configurações do application.properties
+// @Configuration
 public class DatabaseConfig {
 
+    // Configuração específica para testes se necessário
     @Bean
-    public DataSource dataSource() {
+    @Profile("test")
+    public DataSource testDataSource() {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:h2:mem:testdb");
         config.setUsername("sa");

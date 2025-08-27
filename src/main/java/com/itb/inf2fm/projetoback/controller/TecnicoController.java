@@ -8,6 +8,14 @@ package com.itb.inf2fm.projetoback.controller;
 import com.itb.inf2fm.projetoback.model.Tecnico;
 import com.itb.inf2fm.projetoback.service.PasswordEncryptService;
 import com.itb.inf2fm.projetoback.service.TecnicoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -42,6 +50,7 @@ import java.util.Optional;
  *   "usuario": { ... }
  * }
  */
+@Tag(name = "Tecnico", description = "API para gerenciamento de técnicos e seus dados relacionados")
 @RestController
 @RequestMapping("/tecnico")
 public class TecnicoController {
@@ -52,8 +61,17 @@ public class TecnicoController {
             this.tecnicoService = tecnicoService;
         }
 
+        @Operation(summary = "Criar novo técnico", description = "Cria um novo técnico no sistema com todos os dados relacionados")
+        @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Técnico criado com sucesso",
+                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = Tecnico.class))),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+        })
         @PostMapping
-        public ResponseEntity<Object> saveTecnico(@RequestBody Tecnico tecnico){
+        public ResponseEntity<Object> saveTecnico(
+                @Parameter(description = "Dados do técnico a ser criado", required = true)
+                @Valid @RequestBody Tecnico tecnico){
             if (tecnico == null || tecnico.getUsuario() == null) {
                 return ResponseEntity.badRequest().body("Dados do técnico são obrigatórios");
             }
@@ -61,8 +79,18 @@ public class TecnicoController {
                     .body(tecnicoService.save(tecnico));
         }
 
+        @Operation(summary = "Buscar técnico por ID", description = "Retorna um técnico específico baseado no ID fornecido")
+        @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Técnico encontrado",
+                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = Tecnico.class))),
+            @ApiResponse(responseCode = "400", description = "ID inválido fornecido"),
+            @ApiResponse(responseCode = "404", description = "Técnico não encontrado"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+        })
         @GetMapping("/tecnico/{id}")
-        public ResponseEntity<Tecnico> getTecnicoById(@PathVariable Long id) {
+        public ResponseEntity<Tecnico> getTecnicoById(
+                @Parameter(description = "ID do técnico", required = true, example = "1")
+                @PathVariable Long id) {
             if (id <= 0) {
                 return ResponseEntity.badRequest().build();
             }

@@ -1,5 +1,7 @@
 package com.itb.inf2fm.projetoback.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,6 +12,9 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
@@ -41,12 +46,20 @@ public class Usuario implements Serializable {
     private Long id;
 
     @Column(name = "nome", length = 100, nullable = false)
+    @NotBlank(message = "Nome é obrigatório")
+    @Size(max = 100, message = "Nome deve ter no máximo 100 caracteres")
     private String nome;
 
     @Column(name = "email", length = 100, unique = true, nullable = false)
+    @NotBlank(message = "Email é obrigatório")
+    @Email(message = "Email deve ter formato válido")
+    @Size(max = 100, message = "Email deve ter no máximo 100 caracteres")
     private String email;
 
     @Column(name = "senha", length = 255, nullable = false)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @NotBlank(message = "Senha é obrigatória")
+    @Size(min = 6, max = 255, message = "Senha deve ter entre 6 e 255 caracteres")
     private String senha;
 
     @Column(name = "nivelAcesso", length = 10)

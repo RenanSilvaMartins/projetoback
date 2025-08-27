@@ -10,9 +10,18 @@ public class CorsConfiguration implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:5173", "http://localhost:3000")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("Content-Type", "Authorization", "X-Requested-With")
+                .allowedOrigins(
+                    "http://localhost:3000",    // React
+                    "http://localhost:5173",    // Vite
+                    "http://localhost:8080",    // Spring Boot default
+                    "http://localhost:8082",    // Current app port
+                    "http://127.0.0.1:3000",
+                    "http://127.0.0.1:5173",
+                    "http://127.0.0.1:8080",
+                    "http://127.0.0.1:8082"
+                )
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+                .allowedHeaders("*")
                 .allowCredentials(true)
                 .maxAge(3600);
     }

@@ -1,5 +1,6 @@
 package com.itb.inf2fm.projetoback.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -68,9 +69,11 @@ public class Tecnico {
 
     // Relacionamentos Many-to-Many
     @OneToMany(mappedBy = "tecnico", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<TecnicoRegiao> tecnicoRegioes = new HashSet<>();
 
     @OneToMany(mappedBy = "tecnico", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<TecnicoEspecialidade> tecnicoEspecialidades = new HashSet<>();
 
     @Transient

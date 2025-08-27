@@ -1,12 +1,29 @@
 package com.itb.inf2fm.projetoback.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
 public class LoginRequest {
 
     private String cpf;  // Para cliente
+
     private String cnpj; // Para técnico
+
+    @Email(message = "Email deve ter formato válido")
     private String email; // Para login por email
+
+    @NotBlank(message = "Senha é obrigatória")
     private String senha;
 
+    // Construtores
+    public LoginRequest() {}
+    
+    public LoginRequest(String email, String senha) {
+        this.email = email;
+        this.senha = senha;
+    }
+
+    // Getters e Setters
     public String getCpf() {
         return cpf;
     }

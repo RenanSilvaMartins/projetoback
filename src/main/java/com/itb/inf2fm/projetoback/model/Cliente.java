@@ -42,7 +42,7 @@ public class Cliente {
     @DateTimeFormat(pattern = "dd/MM/yyyy")
     private LocalDate dataNascimento;
 
-    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
@@ -75,6 +75,22 @@ public class Cliente {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getCpf() {

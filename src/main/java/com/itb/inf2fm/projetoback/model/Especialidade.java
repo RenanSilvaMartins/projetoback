@@ -1,5 +1,6 @@
 package com.itb.inf2fm.projetoback.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
@@ -22,6 +23,7 @@ public class Especialidade {
     private String statusEspecialidade;
 
     @OneToMany(mappedBy = "especialidade", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<TecnicoEspecialidade> tecnicoEspecialidades = new HashSet<>();
 
     @Transient

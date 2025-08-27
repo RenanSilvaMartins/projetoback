@@ -1,5 +1,6 @@
 package com.itb.inf2fm.projetoback.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
@@ -35,6 +36,7 @@ public class Regiao {
     private String statusRegiao;
 
     @OneToMany(mappedBy = "regiao", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<TecnicoRegiao> tecnicoRegioes = new HashSet<>();
 
     @Transient
