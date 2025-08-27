@@ -2,6 +2,8 @@ package com.itb.inf2fm.projetoback.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.itb.inf2fm.projetoback.util.Base64ToByteArrayDeserializer;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -67,6 +69,7 @@ public class Usuario implements Serializable {
 
     @Lob
     @Column(name = "foto")
+    @JsonDeserialize(using = Base64ToByteArrayDeserializer.class)
     private byte[] foto;
 
     @Column(name = "dataCadastro", nullable = false)
@@ -164,7 +167,11 @@ public class Usuario implements Serializable {
     }
 
     public void setIsValid(boolean valid) {
-        isValid = valid;
+        this.isValid = valid;
+    }
+
+    public void setValid(boolean valid) {
+        this.isValid = valid;
     }
 
     @PrePersist

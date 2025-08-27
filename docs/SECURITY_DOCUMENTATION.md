@@ -1,4 +1,11 @@
-# Documentação de Segurança - Sistema Backend
+# 🔒 Documentação de Segurança Completa
+
+[![Security](https://img.shields.io/badge/Security-High-green.svg)]()
+[![JWT](https://img.shields.io/badge/JWT-Enabled-blue.svg)]()
+[![HTTPS](https://img.shields.io/badge/HTTPS-Required%20in%20Prod-red.svg)]()
+[![BCrypt](https://img.shields.io/badge/BCrypt-Strength%2012-orange.svg)]()
+
+Este documento abrange todas as medidas de segurança implementadas no Sistema de Gerenciamento Backend, incluindo as proteções existentes e novas implementações.
 
 ## 🛡️ Proteções Implementadas
 
@@ -12,12 +19,14 @@
 
 **Configuração**:
 - Máximo: 5 tentativas por IP
-- Bloqueio: 15 minutos
+- Bloqueio: 15 minutos  
 - Aplicado em: Login e Password Reset
 
 ```java
 // Exemplo de uso
 if (!rateLimitService.isAllowed(clientIp)) {
+    throw new TooManyRequestsException("Muitas tentativas. Tente novamente em 15 minutos");
+}
     return ResponseEntity.status(429); // Too Many Requests
 }
 ```

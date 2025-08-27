@@ -7,6 +7,7 @@ package com.itb.inf2fm.projetoback.controller;
 
 import com.itb.inf2fm.projetoback.model.Usuario;
 import com.itb.inf2fm.projetoback.service.UsuarioService;
+import com.itb.inf2fm.projetoback.dto.request.LoginRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -114,11 +115,7 @@ public class UsuarioController {
     @PostMapping("/login")
     public ResponseEntity<Usuario> login(
             @Parameter(description = "Credenciais de login") 
-            @RequestBody Usuario loginRequest) {
-        if (loginRequest == null || loginRequest.getEmail() == null || loginRequest.getSenha() == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        
+            @Valid @RequestBody LoginRequest loginRequest) {
         Usuario usuario = usuarioService.authenticate(loginRequest.getEmail(), loginRequest.getSenha());
         if (usuario != null && usuario.isValid()) {
             return ResponseEntity.ok(usuario);
@@ -131,7 +128,7 @@ public class UsuarioController {
     @PostMapping("/authenticate")
     public ResponseEntity<Usuario> authenticate(
             @Parameter(description = "Credenciais de autenticação") 
-            @RequestBody Usuario loginRequest) {
+            @Valid @RequestBody LoginRequest loginRequest) {
         return login(loginRequest); // Delega para o método login existente
     }
 }

@@ -1512,3 +1512,16 @@ Hibernate: select r1_0.id from regiao r1_0 where r1_0.nome=? fetch first ? rows 
 Hibernate: insert into regiao (cidade,descricao,nome,status_regiao,id) values (?,?,?,?,default)
 2025-08-27T16:32:48.201-03:00  INFO 3976 --- [projetoback] [  restartedMain] c.i.i.p.config.DataInitializer           : Dados padrão inicializados com sucesso
 2025-08-27T16:32:48.203-03:00  INFO 3976 --- [projetoback] [  restartedMain] .ConditionEvaluationDeltaLoggingListener : Condition evaluation unchanged
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  27:22 min
+[INFO] Finished at: 2025-08-27T16:38:05-03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.4.0:run (default-cli) on project projetoback: Process terminated with exit code: 137 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

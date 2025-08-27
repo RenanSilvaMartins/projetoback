@@ -70,16 +70,49 @@ public class ClienteService {
         try {
             // Valida dados básicos
             if (cliente == null) {
-                throw new IllegalArgumentException("Cliente não pode ser nulo");
+                Cliente errorCliente = new Cliente();
+                errorCliente.setMensagemErro("Cliente não pode ser nulo");
+                errorCliente.setValid(false);
+                return errorCliente;
+            }
+            
+            // Valida campos obrigatórios do cliente
+            if (cliente.getNome() == null || cliente.getNome().trim().isEmpty()) {
+                cliente.setMensagemErro("Nome é obrigatório");
+                cliente.setValid(false);
+                return cliente;
+            }
+            
+            if (cliente.getEmail() == null || cliente.getEmail().trim().isEmpty()) {
+                cliente.setMensagemErro("Email é obrigatório");
+                cliente.setValid(false);
+                return cliente;
+            }
+            
+            if (cliente.getCpf() == null || cliente.getCpf().trim().isEmpty()) {
+                cliente.setMensagemErro("CPF é obrigatório");
+                cliente.setValid(false);
+                return cliente;
+            }
+            
+            if (cliente.getDataNascimento() == null) {
+                cliente.setMensagemErro("Data de nascimento é obrigatória");
+                cliente.setValid(false);
+                return cliente;
             }
             
             // Se tem usuário, usa o método completo
             if (cliente.getUsuario() != null) {
                 return salvarCliente(cliente);
+            } else {
+                // Define status padrão se não estiver definido
+                if (cliente.getStatusCliente() == null || cliente.getStatusCliente().trim().isEmpty()) {
+                    cliente.setStatusCliente("ATIVO");
+                }
+                
+                // Salva diretamente
+                return clienteRepository.save(cliente);
             }
-            
-            // Senão, salva diretamente
-            return clienteRepository.save(cliente);
         } catch (Exception e) {
             cliente.setMensagemErro("Erro ao salvar cliente: " + e.getMessage());
             cliente.setValid(false);
