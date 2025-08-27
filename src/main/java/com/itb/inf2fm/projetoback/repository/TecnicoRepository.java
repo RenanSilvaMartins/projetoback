@@ -4,8 +4,17 @@ import com.itb.inf2fm.projetoback.model.Tecnico;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Optional;
+
 @Repository
 public interface TecnicoRepository extends JpaRepository<Tecnico, Long>{
 
-    Tecnico findAllById(long id);
+    Optional<Tecnico> findByCpfCnpj(String cpfCnpj);
+
+    Optional<Tecnico> findByUsuarioEmail(String email);
+    
+    List<Tecnico> findByStatusTecnico(String statusTecnico);
+    
+    boolean existsByCpfCnpj(String cpfCnpj);
 }

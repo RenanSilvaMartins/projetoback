@@ -1,67 +1,268 @@
+// Service para Técnico
+// Contém regras de negócio e validações para operações de técnico
+// Integração com Frontend: métodos deste service são usados pelos controllers REST
+// Flutter/ReactJS consomem endpoints que dependem desta lógica
 package com.itb.inf2fm.projetoback.service;
 
 import com.itb.inf2fm.projetoback.exceptions.NotFound;
 import com.itb.inf2fm.projetoback.model.Tecnico;
+import com.itb.inf2fm.projetoback.model.Usuario;
+import com.itb.inf2fm.projetoback.model.TecnicoRegiao;
+import com.itb.inf2fm.projetoback.model.TecnicoEspecialidade;
 import com.itb.inf2fm.projetoback.repository.TecnicoRepository;
+import com.itb.inf2fm.projetoback.repository.UsuarioRepository;
+import com.itb.inf2fm.projetoback.repository.TecnicoRegiaoRepository;
+import com.itb.inf2fm.projetoback.repository.TecnicoEspecialidadeRepository;
+import com.itb.inf2fm.projetoback.repository.RegiaoRepository;
+import com.itb.inf2fm.projetoback.repository.EspecialidadeRepository;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TecnicoService {
 
-    final TecnicoRepository tecnicoRepository;
+    private static final Logger logger = LoggerFactory.getLogger(TecnicoService.class);
+    private static final String STATUS_ATIVO = "ATIVO";
+    private static final String STATUS_INATIVO = "INATIVO";
+    private static final String NIVEL_USER = "USER";
 
-    public TecnicoService(TecnicoRepository _tecnicoRepository) {
-        this.tecnicoRepository = _tecnicoRepository;
+    private final TecnicoRepository tecnicoRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final TecnicoRegiaoRepository tecnicoRegiaoRepository;
+    private final TecnicoEspecialidadeRepository tecnicoEspecialidadeRepository;
+    private final RegiaoRepository regiaoRepository;
+    private final EspecialidadeRepository especialidadeRepository;
+
+    public TecnicoService(TecnicoRepository tecnicoRepository, 
+                         UsuarioRepository usuarioRepository,
+                         TecnicoRegiaoRepository tecnicoRegiaoRepository,
+                         TecnicoEspecialidadeRepository tecnicoEspecialidadeRepository,
+                         RegiaoRepository regiaoRepository,
+                         EspecialidadeRepository especialidadeRepository) {
+        this.tecnicoRepository = tecnicoRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.tecnicoRegiaoRepository = tecnicoRegiaoRepository;
+        this.tecnicoEspecialidadeRepository = tecnicoEspecialidadeRepository;
+        this.regiaoRepository = regiaoRepository;
+        this.especialidadeRepository = especialidadeRepository;
     }
-
 
     @Transactional
-    public Tecnico save(Tecnico _tecnico) {
-        return tecnicoRepository.save(_tecnico);
+    public Tecnico salvarTecnico(Tecnico tecnico) {
+        if (tecnico == null || tecnico.getUsuario() == null) {
+            throw new IllegalArgumentException("Técnico e usuário são obrigatórios");
+        }
+        
+        // Criptografa a senha do usuário
+        tecnico.getUsuario().setSenha(BCrypt.hashpw(tecnico.getUsuario().getSenha(), BCrypt.gensalt()));
+        
+        // Define valores padrão se não estiverem definidos
+        if (tecnico.getUsuario().getDataCadastro() == null) {
+            tecnico.getUsuario().setDataCadastro(LocalDateTime.now());
+        }
+        if (tecnico.getUsuario().getStatusUsuario() == null) {
+            tecnico.getUsuario().setStatusUsuario(STATUS_ATIVO);
+        }
+        if (tecnico.getUsuario().getNivelAcesso() == null) {
+            tecnico.getUsuario().setNivelAcesso(NIVEL_USER);
+        }
+        if (tecnico.getStatusTecnico() == null) {
+            tecnico.setStatusTecnico(STATUS_ATIVO);
+        }
+        
+        return tecnicoRepository.save(tecnico);
     }
 
+    public Optional<Tecnico> findByCpfCnpj(String cpfCnpj) {
+        return tecnicoRepository.findByCpfCnpj(cpfCnpj);
+    }
+
+    public Optional<Tecnico> findByEmail(String email) {
+        return tecnicoRepository.findByUsuarioEmail(email);
+    }
+
+    @Transactional
+    public Tecnico save(Tecnico tecnico) {
+        logger.debug("Salvando técnico: {}", tecnico.getId());
+        
+        if (tecnico.getUsuario() == null) {
+            throw new IllegalArgumentException("Usuário é obrigatório para o técnico");
+        }
+        
+        // Se o usuário tem ID, verificar se existe e criar referência
+        if (tecnico.getUsuario().getId() != null) {
+            Long usuarioId = tecnico.getUsuario().getId();
+            logger.debug("Verificando se usuário com ID {} existe", usuarioId);
+            
+            Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
+            if (usuarioOpt.isPresent()) {
+                Usuario usuarioExistente = usuarioOpt.get();
+                logger.debug("Usuário encontrado: {}", usuarioExistente.getEmail());
+                tecnico.setUsuario(usuarioExistente);
+                tecnico.setId(usuarioExistente.getId());
+            } else {
+                logger.error("Usuário não encontrado com ID: {}", usuarioId);
+                throw new NotFound("Usuário não encontrado com ID: " + usuarioId);
+            }
+        }
+        
+        // Define valor padrão para statusTecnico se não estiver definido
+        if (tecnico.getStatusTecnico() == null) {
+            tecnico.setStatusTecnico(STATUS_ATIVO);
+        }
+        
+        logger.info("Salvando técnico com ID: {}", tecnico.getId());
+        return tecnicoRepository.save(tecnico);
+    }
 
     public List<Tecnico> findAll() {
-        List<Tecnico> lista = tecnicoRepository.findAll();
-        return lista;
+        return tecnicoRepository.findAll();
     }
 
-    public Tecnico findById(long id) {
-        return tecnicoRepository.findById(id).orElse(null);
+    public Optional<Tecnico> findById(Long id) {
+        return tecnicoRepository.findById(id);
+    }
+
+    public List<Tecnico> findByStatus(String statusTecnico) {
+        return tecnicoRepository.findByStatusTecnico(statusTecnico);
     }
 
     @Transactional
     public Tecnico update(Tecnico tecnico) {
+        if (tecnico == null || tecnico.getUsuario() == null) {
+            throw new IllegalArgumentException("Técnico e usuário são obrigatórios");
+        }
+        
         Tecnico existingTecnico = tecnicoRepository.findById(tecnico.getId())
-                .orElseThrow(() -> new NotFound("Tecnico não encontrado"));
-        existingTecnico.setNome(tecnico.getNome());
-        existingTecnico.setEmail(tecnico.getEmail());
-        existingTecnico.setSenha(tecnico.getSenha());
-        existingTecnico.setTelefone(tecnico.getTelefone());
-        existingTecnico.setCnpj(tecnico.getCnpj());
-        existingTecnico.setEspecialidade(tecnico.getEspecialidade());
+                .orElseThrow(() -> new NotFound("Técnico não encontrado"));
+        
+        // Atualiza dados do usuário
+        existingTecnico.getUsuario().setNome(tecnico.getUsuario().getNome());
+        existingTecnico.getUsuario().setEmail(tecnico.getUsuario().getEmail());
+        
+        // Só atualiza a senha se uma nova foi fornecida
+        if (tecnico.getUsuario().getSenha() != null && !tecnico.getUsuario().getSenha().isEmpty()) {
+            existingTecnico.getUsuario().setSenha(BCrypt.hashpw(tecnico.getUsuario().getSenha(), BCrypt.gensalt()));
+        }
+        
+        // Atualiza dados específicos do técnico
+        existingTecnico.setCpfCnpj(tecnico.getCpfCnpj());
         existingTecnico.setDataNascimento(tecnico.getDataNascimento());
-        existingTecnico.setEstado(tecnico.getEstado());
-        existingTecnico.setCidade(tecnico.getCidade());
-        existingTecnico.setBairro(tecnico.getBairro());
-        existingTecnico.setRua(tecnico.getRua());
-        existingTecnico.setCasa(tecnico.getCasa());
+        existingTecnico.setTelefone(tecnico.getTelefone());
+        existingTecnico.setCep(tecnico.getCep());
+        existingTecnico.setNumeroResidencia(tecnico.getNumeroResidencia());
         existingTecnico.setComplemento(tecnico.getComplemento());
+        existingTecnico.setDescricao(tecnico.getDescricao());
+        existingTecnico.setStatusTecnico(tecnico.getStatusTecnico());
+        
         return tecnicoRepository.save(existingTecnico);
     }
 
     @Transactional
-    public boolean delete(Tecnico _tecnico) {
-        boolean sucesso = false;
-        Tecnico tecnicoEncontrado = tecnicoRepository.findAllById(_tecnico.getId());
-        if (tecnicoEncontrado.getId() > 0) {
-            tecnicoRepository.deleteById(tecnicoEncontrado.getId());
-            sucesso = true;
+    public boolean delete(Long id) {
+        Optional<Tecnico> tecnicoOptional = tecnicoRepository.findById(id);
+        if (tecnicoOptional.isPresent()) {
+            // Remove relacionamentos primeiro
+            tecnicoRegiaoRepository.deleteByTecnicoId(id);
+            tecnicoEspecialidadeRepository.deleteByTecnicoId(id);
+            // Remove o técnico
+            tecnicoRepository.deleteById(id);
+            return true;
         }
+        return false;
+    }
 
-        return sucesso;
+    @Transactional
+    public boolean inativar(Long id) {
+        Optional<Tecnico> tecnicoOptional = tecnicoRepository.findById(id);
+        if (tecnicoOptional.isPresent()) {
+            Tecnico tecnico = tecnicoOptional.get();
+            tecnico.setStatusTecnico(STATUS_INATIVO);
+            tecnico.getUsuario().setStatusUsuario(STATUS_INATIVO);
+            tecnicoRepository.save(tecnico);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean existsByCpfCnpj(String cpfCnpj) {
+        return tecnicoRepository.existsByCpfCnpj(cpfCnpj);
+    }
+
+    public boolean existsByEmail(String email) {
+        return usuarioRepository.existsByEmail(email);
+    }
+
+    // Métodos para gerenciar regiões do técnico
+    @Transactional
+    public void adicionarRegiao(Long tecnicoId, Long regiaoId) {
+        Optional<Tecnico> tecnicoOpt = tecnicoRepository.findById(tecnicoId);
+        if (tecnicoOpt.isEmpty()) {
+            throw new NotFound("Técnico não encontrado com ID: " + tecnicoId);
+        }
+        
+        var regiao = regiaoRepository.findById(regiaoId)
+                .orElseThrow(() -> new NotFound("Região não encontrada com ID: " + regiaoId));
+        
+        TecnicoRegiao tecnicoRegiao = new TecnicoRegiao();
+        tecnicoRegiao.setTecnico(tecnicoOpt.get());
+        tecnicoRegiao.setRegiao(regiao);
+        tecnicoRegiao.setStatusTecnicoRegiao(STATUS_ATIVO);
+        tecnicoRegiaoRepository.save(tecnicoRegiao);
+    }
+
+    @Transactional
+    public void removerRegiao(Long tecnicoId, Long regiaoId) {
+        if (!tecnicoRepository.existsById(tecnicoId)) {
+            throw new NotFound("Técnico não encontrado com ID: " + tecnicoId);
+        }
+        tecnicoRegiaoRepository.deleteByTecnicoIdAndRegiaoId(tecnicoId, regiaoId);
+    }
+
+    public List<TecnicoRegiao> getRegioesByTecnico(Long tecnicoId) {
+        if (!tecnicoRepository.existsById(tecnicoId)) {
+            throw new NotFound("Técnico não encontrado com ID: " + tecnicoId);
+        }
+        return tecnicoRegiaoRepository.findByTecnicoId(tecnicoId);
+    }
+
+    // Métodos para gerenciar especialidades do técnico
+    @Transactional
+    public void adicionarEspecialidade(Long tecnicoId, Long especialidadeId) {
+        Optional<Tecnico> tecnicoOpt = tecnicoRepository.findById(tecnicoId);
+        if (tecnicoOpt.isEmpty()) {
+            throw new NotFound("Técnico não encontrado com ID: " + tecnicoId);
+        }
+        
+        var especialidade = especialidadeRepository.findById(especialidadeId)
+                .orElseThrow(() -> new NotFound("Especialidade não encontrada com ID: " + especialidadeId));
+        
+        TecnicoEspecialidade tecnicoEspecialidade = new TecnicoEspecialidade();
+        tecnicoEspecialidade.setTecnico(tecnicoOpt.get());
+        tecnicoEspecialidade.setEspecialidade(especialidade);
+        tecnicoEspecialidade.setStatusTecnicoEspecialidade(STATUS_ATIVO);
+        tecnicoEspecialidadeRepository.save(tecnicoEspecialidade);
+    }
+
+    @Transactional
+    public void removerEspecialidade(Long tecnicoId, Long especialidadeId) {
+        if (!tecnicoRepository.existsById(tecnicoId)) {
+            throw new NotFound("Técnico não encontrado com ID: " + tecnicoId);
+        }
+        tecnicoEspecialidadeRepository.deleteByTecnicoIdAndEspecialidadeId(tecnicoId, especialidadeId);
+    }
+
+    public List<TecnicoEspecialidade> getEspecialidadesByTecnico(Long tecnicoId) {
+        if (!tecnicoRepository.existsById(tecnicoId)) {
+            throw new NotFound("Técnico não encontrado com ID: " + tecnicoId);
+        }
+        return tecnicoEspecialidadeRepository.findByTecnicoId(tecnicoId);
     }
 }

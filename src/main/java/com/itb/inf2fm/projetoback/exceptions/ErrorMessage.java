@@ -39,13 +39,10 @@ public class ErrorMessage {
 
     public void setTitle(HttpStatus title) {
         this.title = title;
+        this.status = title.value();
     }
 
     public int getStatus() {
         return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
     }
 }

@@ -4,39 +4,74 @@ import jakarta.persistence.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
-
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "Tecnico")
 public class Tecnico {
 
-    Tecnico(){
-
+    public Tecnico() {
     }
 
-    public Tecnico(long id, String nome){
-        this.id = id;
-        this.nome = nome;
+    public Tecnico(String cpfCnpj, LocalDate dataNascimento, String telefone, String cep, 
+                   String numeroResidencia, String complemento, String descricao, 
+                   Usuario usuario, String statusTecnico) {
+        this.cpfCnpj = cpfCnpj;
+        this.dataNascimento = dataNascimento;
+        this.telefone = telefone;
+        this.cep = cep;
+        this.numeroResidencia = numeroResidencia;
+        this.complemento = complemento;
+        this.descricao = descricao;
+        this.usuario = usuario;
+        this.statusTecnico = statusTecnico;
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
-    private String nome;
-    private String email;
-    private String senha;
-    private String telefone;
-    private String cnpj;
-    private String especialidade;
+    @Column(name = "cpf_cnpj", length = 14, nullable = false)
+    private String cpfCnpj;
+
+    @Column(name = "dataNascimento", nullable = false)
     @DateTimeFormat(pattern = "dd/MM/yyyy")
     private LocalDate dataNascimento;
-    private String estado;
-    private String cidade;
-    private String bairro;
-    private String rua;
-    private String casa;
+
+    @Column(name = "telefone", length = 20, nullable = false)
+    private String telefone;
+
+    @Column(name = "cep", length = 8, nullable = false)
+    private String cep;
+
+    @Column(name = "numeroResidencia", length = 10, nullable = false)
+    private String numeroResidencia;
+
+    @Column(name = "complemento", length = 10, nullable = false)
     private String complemento;
+
+    @Column(name = "descricao", length = 400, nullable = false)
+    private String descricao;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @MapsId
+    @JoinColumn(name = "id")
+    private Usuario usuario;
+    
+    // Campo transient para receber apenas o ID do usuario
+    @Transient
+    private Long usuarioId;
+
+    @Column(name = "statusTecnico", length = 20, nullable = false)
+    private String statusTecnico;
+
+    // Relacionamentos Many-to-Many
+    @OneToMany(mappedBy = "tecnico", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<TecnicoRegiao> tecnicoRegioes = new HashSet<>();
+
+    @OneToMany(mappedBy = "tecnico", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<TecnicoEspecialidade> tecnicoEspecialidades = new HashSet<>();
 
     @Transient
     private String mensagemErro = "";
@@ -44,60 +79,21 @@ public class Tecnico {
     @Transient
     private boolean isValid = true;
 
-    public long getId() {
+    // Getters e Setters
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public String getNome() {
-        return nome;
+    public String getCpfCnpj() {
+        return cpfCnpj;
     }
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getSenha() {
-        return senha;
-    }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
-    }
-
-    public String getTelefone() {
-        return telefone;
-    }
-
-    public void setTelefone(String telefone) {
-        this.telefone = telefone;
-    }
-
-    public String getCnpj() {
-        return cnpj;
-    }
-
-    public void setCnpj(String cnpj) {
-        this.cnpj = cnpj;
-    }
-
-    public String getEspecialidade() {
-        return especialidade;
-    }
-
-    public void setEspecialidade(String especialidade) {
-        this.especialidade = especialidade;
+    public void setCpfCnpj(String cpfCnpj) {
+        this.cpfCnpj = cpfCnpj;
     }
 
     public LocalDate getDataNascimento() {
@@ -108,44 +104,28 @@ public class Tecnico {
         this.dataNascimento = dataNascimento;
     }
 
-    public String getEstado() {
-        return estado;
+    public String getTelefone() {
+        return telefone;
     }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
     }
 
-    public String getCidade() {
-        return cidade;
+    public String getCep() {
+        return cep;
     }
 
-    public void setCidade(String cidade) {
-        this.cidade = cidade;
+    public void setCep(String cep) {
+        this.cep = cep;
     }
 
-    public String getBairro() {
-        return bairro;
+    public String getNumeroResidencia() {
+        return numeroResidencia;
     }
 
-    public void setBairro(String bairro) {
-        this.bairro = bairro;
-    }
-
-    public String getRua() {
-        return rua;
-    }
-
-    public void setRua(String rua) {
-        this.rua = rua;
-    }
-
-    public String getCasa() {
-        return casa;
-    }
-
-    public void setCasa(String casa) {
-        this.casa = casa;
+    public void setNumeroResidencia(String numeroResidencia) {
+        this.numeroResidencia = numeroResidencia;
     }
 
     public String getComplemento() {
@@ -154,5 +134,69 @@ public class Tecnico {
 
     public void setComplemento(String complemento) {
         this.complemento = complemento;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
+    }
+
+    public String getStatusTecnico() {
+        return statusTecnico;
+    }
+
+    public void setStatusTecnico(String statusTecnico) {
+        this.statusTecnico = statusTecnico;
+    }
+
+    public Set<TecnicoRegiao> getTecnicoRegioes() {
+        return new HashSet<>(tecnicoRegioes);
+    }
+
+    public void setTecnicoRegioes(Set<TecnicoRegiao> tecnicoRegioes) {
+        this.tecnicoRegioes = tecnicoRegioes;
+    }
+
+    public Set<TecnicoEspecialidade> getTecnicoEspecialidades() {
+        return new HashSet<>(tecnicoEspecialidades);
+    }
+
+    public void setTecnicoEspecialidades(Set<TecnicoEspecialidade> tecnicoEspecialidades) {
+        this.tecnicoEspecialidades = tecnicoEspecialidades;
+    }
+
+    public String getMensagemErro() {
+        return mensagemErro;
+    }
+
+    public void setMensagemErro(String mensagemErro) {
+        this.mensagemErro = mensagemErro;
+    }
+
+    public boolean isValid() {
+        return isValid;
+    }
+
+    public void setValid(boolean valid) {
+        isValid = valid;
+    }
+
+    public Long getUsuarioId() {
+        return usuarioId;
+    }
+
+    public void setUsuarioId(Long usuarioId) {
+        this.usuarioId = usuarioId;
     }
 }
