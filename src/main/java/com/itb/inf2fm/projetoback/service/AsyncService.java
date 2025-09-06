@@ -20,28 +20,51 @@ public class AsyncService {
     
     @Async
     public void logAsync(String level, String message, Object... args) {
+        String sanitizedMessage = sanitizeLogMessage(message);
+        Object[] sanitizedArgs = sanitizeLogArgs(args);
+        
         switch (level.toLowerCase()) {
             case "info":
-                logger.info(message, args);
+                logger.info(sanitizedMessage, sanitizedArgs);
                 break;
             case "warn":
-                logger.warn(message, args);
+                logger.warn(sanitizedMessage, sanitizedArgs);
                 break;
             case "error":
-                logger.error(message, args);
+                logger.error(sanitizedMessage, sanitizedArgs);
                 break;
             default:
-                logger.debug(message, args);
+                logger.debug(sanitizedMessage, sanitizedArgs);
                 break;
         }
+    }
+    
+    private String sanitizeLogMessage(String message) {
+        if (message == null) return "";
+        return message.replaceAll("[\r\n]", "_");
+    }
+    
+    private Object[] sanitizeLogArgs(Object... args) {
+        if (args == null) return new Object[0];
+        Object[] sanitized = new Object[args.length];
+        for (int i = 0; i < args.length; i++) {
+            if (args[i] instanceof String) {
+                sanitized[i] = ((String) args[i]).replaceAll("[\r\n]", "_");
+            } else {
+                sanitized[i] = args[i];
+            }
+        }
+        return sanitized;
     }
     
     @Async
     public void processInBackground(Runnable task) {
         try {
             task.run();
+        } catch (RuntimeException e) {
+            logger.error("Erro no processamento assíncrono: {}", e.getMessage());
         } catch (Exception e) {
-            logger.error("Erro no processamento assíncrono", e);
+            logger.error("Erro inesperado no processamento assíncrono: {}", e.getMessage());
         }
     }
 }

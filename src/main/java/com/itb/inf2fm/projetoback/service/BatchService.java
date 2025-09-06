@@ -36,8 +36,8 @@ public class BatchService {
                 stmt.setString(1, (String) usuario[0]); // nome
                 stmt.setString(2, (String) usuario[1]); // email
                 stmt.setString(3, (String) usuario[2]); // senha
-                stmt.setString(4, (String) usuario[3]); // nivelAcesso
-                stmt.setString(5, (String) usuario[4]); // statusUsuario
+                stmt.setString(4, ((String) usuario[3]).toUpperCase(java.util.Locale.ROOT)); // nivelAcesso
+                stmt.setString(5, ((String) usuario[4]).toUpperCase(java.util.Locale.ROOT)); // statusUsuario
                 stmt.setObject(6, usuario[5]); // dataCadastro
                 stmt.addBatch();
             }

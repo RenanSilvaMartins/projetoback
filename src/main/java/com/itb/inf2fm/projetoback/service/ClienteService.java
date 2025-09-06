@@ -113,8 +113,16 @@ public class ClienteService {
                 // Salva diretamente
                 return clienteRepository.save(cliente);
             }
-        } catch (Exception e) {
-            cliente.setMensagemErro("Erro ao salvar cliente: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            cliente.setMensagemErro("Dados inválidos: " + e.getMessage());
+            cliente.setValid(false);
+            return cliente;
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            cliente.setMensagemErro("CPF ou email já está em uso");
+            cliente.setValid(false);
+            return cliente;
+        } catch (RuntimeException e) {
+            cliente.setMensagemErro("Erro interno do sistema");
             cliente.setValid(false);
             return cliente;
         }
@@ -177,7 +185,9 @@ public class ClienteService {
                 return true;
             }
             return false;
-        } catch (Exception e) {
+        } catch (org.springframework.dao.DataAccessException e) {
+            return false;
+        } catch (RuntimeException e) {
             return false;
         }
     }
@@ -199,7 +209,9 @@ public class ClienteService {
                 return true;
             }
             return false;
-        } catch (Exception e) {
+        } catch (org.springframework.dao.DataAccessException e) {
+            return false;
+        } catch (RuntimeException e) {
             return false;
         }
     }

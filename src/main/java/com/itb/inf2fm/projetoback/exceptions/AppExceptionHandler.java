@@ -19,6 +19,11 @@ public class AppExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(AppExceptionHandler.class);
     private static final ZoneId ZONE_BRASIL = ZoneId.of("America/Sao_Paulo");
     
+    private String sanitizeForLog(String input) {
+        if (input == null) return "";
+        return input.replaceAll("[\r\n]", "_");
+    }
+    
     // Código Erro : 500
 
     @ExceptionHandler(value = {Exception.class})
@@ -36,7 +41,7 @@ public class AppExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = {BadRequest.class})
     public ResponseEntity<Object> badRequestException(BadRequest ex, WebRequest request) {
         LocalDateTime localDateTimeBrasil = LocalDateTime.now(ZONE_BRASIL);
-        logger.warn("Bad request: {}", ex.getMessage());
+        logger.warn("Bad request: {}", sanitizeForLog(ex.getMessage()));
         String errorMessageDescription = ex.getLocalizedMessage();
         if(errorMessageDescription == null) errorMessageDescription = ex.toString();
         String[] arrayMessage = {errorMessageDescription};
@@ -47,7 +52,7 @@ public class AppExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = {NotFound.class})
     public ResponseEntity<Object> notFoundException(NotFound ex, WebRequest request) {
         LocalDateTime localDateTimeBrasil = LocalDateTime.now(ZONE_BRASIL);
-        logger.info("Resource not found: {}", ex.getMessage());
+        logger.info("Resource not found: {}", sanitizeForLog(ex.getMessage()));
         String errorMessageDescription = ex.getLocalizedMessage();
         if(errorMessageDescription == null) errorMessageDescription = ex.toString();
         String[] arrayMessage = {errorMessageDescription};

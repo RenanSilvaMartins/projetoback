@@ -203,16 +203,14 @@ public class TecnicoService {
     // Métodos para gerenciar regiões do técnico
     @Transactional
     public void adicionarRegiao(Long tecnicoId, Long regiaoId) {
-        Optional<Tecnico> tecnicoOpt = tecnicoRepository.findById(tecnicoId);
-        if (tecnicoOpt.isEmpty()) {
-            throw new NotFound("Técnico não encontrado com ID: " + tecnicoId);
-        }
+        Tecnico tecnico = tecnicoRepository.findById(tecnicoId)
+                .orElseThrow(() -> new NotFound("Técnico não encontrado com ID: " + tecnicoId));
         
         var regiao = regiaoRepository.findById(regiaoId)
                 .orElseThrow(() -> new NotFound("Região não encontrada com ID: " + regiaoId));
         
         TecnicoRegiao tecnicoRegiao = new TecnicoRegiao();
-        tecnicoRegiao.setTecnico(tecnicoOpt.get());
+        tecnicoRegiao.setTecnico(tecnico);
         tecnicoRegiao.setRegiao(regiao);
         tecnicoRegiao.setStatusTecnicoRegiao(STATUS_ATIVO);
         tecnicoRegiaoRepository.save(tecnicoRegiao);
@@ -236,16 +234,14 @@ public class TecnicoService {
     // Métodos para gerenciar especialidades do técnico
     @Transactional
     public void adicionarEspecialidade(Long tecnicoId, Long especialidadeId) {
-        Optional<Tecnico> tecnicoOpt = tecnicoRepository.findById(tecnicoId);
-        if (tecnicoOpt.isEmpty()) {
-            throw new NotFound("Técnico não encontrado com ID: " + tecnicoId);
-        }
+        Tecnico tecnico = tecnicoRepository.findById(tecnicoId)
+                .orElseThrow(() -> new NotFound("Técnico não encontrado com ID: " + tecnicoId));
         
         var especialidade = especialidadeRepository.findById(especialidadeId)
                 .orElseThrow(() -> new NotFound("Especialidade não encontrada com ID: " + especialidadeId));
         
         TecnicoEspecialidade tecnicoEspecialidade = new TecnicoEspecialidade();
-        tecnicoEspecialidade.setTecnico(tecnicoOpt.get());
+        tecnicoEspecialidade.setTecnico(tecnico);
         tecnicoEspecialidade.setEspecialidade(especialidade);
         tecnicoEspecialidade.setStatusTecnicoEspecialidade(STATUS_ATIVO);
         tecnicoEspecialidadeRepository.save(tecnicoEspecialidade);

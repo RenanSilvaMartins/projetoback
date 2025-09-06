@@ -222,6 +222,6 @@ public class ValidationUtils {
      * Gera mensagem de erro padronizada para validação
      */
     public static String getValidationMessage(String field, String error) {
-        return String.format("Campo '%s': %s", field, error);
+        return String.format(java.util.Locale.ROOT, "Campo '%s': %s", field, error);
     }
 }

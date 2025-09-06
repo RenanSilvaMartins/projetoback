@@ -28,6 +28,11 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    
+    private String sanitizeForLog(String input) {
+        if (input == null) return "";
+        return input.replaceAll("[\r\n]", "_");
+    }
 
     /**
      * Trata exceções de validação de campos
@@ -180,7 +185,9 @@ public class GlobalExceptionHandler {
         );
         response.setPath(request.getRequestURI());
 
-        logger.error("Erro interno na rota {}: ", request.getRequestURI(), ex);
+        String sanitizedUri = sanitizeForLog(request.getRequestURI());
+        String sanitizedMessage = sanitizeForLog(ex.getMessage());
+        logger.error("Erro interno na rota {}: {}", sanitizedUri, sanitizedMessage);
         
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }

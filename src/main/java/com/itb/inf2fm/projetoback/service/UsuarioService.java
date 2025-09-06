@@ -66,8 +66,14 @@ public class UsuarioService {
             }
             
             return saved;
-        } catch (Exception e) {
-            logger.error("Erro ao salvar usuário", e);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Dados inválidos ao salvar usuário: {}", e.getMessage());
+            throw e;
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            logger.error("Violação de integridade ao salvar usuário: {}", e.getMessage());
+            throw new RuntimeException("Email já está em uso", e);
+        } catch (RuntimeException e) {
+            logger.error("Erro ao salvar usuário: {}", e.getMessage());
             throw new RuntimeException("Erro interno do sistema", e);
         }
     }
@@ -102,8 +108,11 @@ public class UsuarioService {
                 return usuario.get();
             }
             return null;
-        } catch (Exception e) {
-            logger.error("Erro ao buscar usuário por ID: {}", id, e);
+        } catch (org.springframework.dao.DataAccessException e) {
+            logger.error("Erro de acesso aos dados ao buscar usuário por ID: {}", id);
+            return null;
+        } catch (RuntimeException e) {
+            logger.error("Erro ao buscar usuário por ID {}: {}", id, e.getMessage());
             return null;
         }
     }
@@ -126,8 +135,11 @@ public class UsuarioService {
                 return usuario.get();
             }
             return null;
-        } catch (Exception e) {
-            logger.error("Erro ao buscar usuário por email: {}", email, e);
+        } catch (org.springframework.dao.DataAccessException e) {
+            logger.error("Erro de acesso aos dados ao buscar usuário por email");
+            return null;
+        } catch (RuntimeException e) {
+            logger.error("Erro ao buscar usuário por email: {}", e.getMessage());
             return null;
         }
     }
@@ -135,8 +147,11 @@ public class UsuarioService {
     public List<Usuario> findAll() {
         try {
             return usuarioRepository.findAll();
-        } catch (Exception e) {
-            logger.error("Erro ao buscar todos os usuários", e);
+        } catch (org.springframework.dao.DataAccessException e) {
+            logger.error("Erro de acesso aos dados ao buscar todos os usuários");
+            return List.of();
+        } catch (RuntimeException e) {
+            logger.error("Erro ao buscar todos os usuários: {}", e.getMessage());
             return List.of();
         }
     }
@@ -148,8 +163,10 @@ public class UsuarioService {
         }
         try {
             usuarioRepository.deleteById(id);
-        } catch (Exception e) {
-            logger.error("Erro ao deletar usuário com ID: {}", id, e);
+        } catch (org.springframework.dao.DataAccessException e) {
+            logger.error("Erro de acesso aos dados ao deletar usuário com ID: {}", id, e);
+        } catch (RuntimeException e) {
+            logger.error("Erro ao deletar usuário com ID {}: {}", id, e.getMessage(), e);
         }
     }
 
@@ -159,8 +176,11 @@ public class UsuarioService {
         }
         try {
             return usuarioRepository.existsByEmail(email.trim());
-        } catch (Exception e) {
-            logger.error("Erro ao verificar existência de email: {}", email, e);
+        } catch (org.springframework.dao.DataAccessException e) {
+            logger.error("Erro de acesso aos dados ao verificar existência de email");
+            return false;
+        } catch (RuntimeException e) {
+            logger.error("Erro ao verificar existência de email: {}", e.getMessage());
             return false;
         }
     }
@@ -200,8 +220,14 @@ public class UsuarioService {
                 user.setIsValid(false);
                 return user;
             }
-        } catch (Exception e) {
-            logger.error("Erro ao autenticar usuário com email: {}", email, e);
+        } catch (org.springframework.dao.DataAccessException e) {
+            logger.error("Erro de acesso aos dados ao autenticar usuário", e);
+            Usuario usuario = new Usuario();
+            usuario.setMensagemErro("Erro interno do sistema. Tente novamente mais tarde!");
+            usuario.setIsValid(false);
+            return usuario;
+        } catch (RuntimeException e) {
+            logger.error("Erro ao autenticar usuário: {}", e.getMessage(), e);
             Usuario usuario = new Usuario();
             usuario.setMensagemErro("Erro interno do sistema. Tente novamente mais tarde!");
             usuario.setIsValid(false);
