@@ -11,12 +11,12 @@ import jakarta.validation.constraints.Size;
 @Schema(description = "Dados para autenticação do usuário")
 public class LoginRequest {
 
-    @Schema(description = "Email do usuário", example = "usuario@email.com", required = true)
+    @Schema(description = "Email do usuário", example = "usuario@email.com")
     @NotBlank(message = "Email é obrigatório")
     @Email(message = "Email deve ter formato válido")
     private String email;
 
-    @Schema(description = "Senha do usuário", example = "123456", required = true)
+    @Schema(description = "Senha do usuário", example = "123456")
     @NotBlank(message = "Senha é obrigatória")
     @Size(min = 6, message = "Senha deve ter pelo menos 6 caracteres")
     private String senha;

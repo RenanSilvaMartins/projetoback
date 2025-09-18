@@ -261,4 +261,11 @@ public class TecnicoService {
         }
         return tecnicoEspecialidadeRepository.findByTecnicoId(tecnicoId);
     }
+    
+    public List<Tecnico> findByNome(String nome) {
+        if (nome == null || nome.trim().isEmpty()) {
+            return List.of();
+        }
+        return tecnicoRepository.findByUsuarioNomeContainingIgnoreCase(nome.trim());
+    }
 }

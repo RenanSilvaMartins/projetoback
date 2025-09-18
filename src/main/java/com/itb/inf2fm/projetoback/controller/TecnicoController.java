@@ -108,6 +108,16 @@ public class TecnicoController {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(tecnicoService.findAll());
         }
+        
+        @Operation(summary = "Buscar técnicos por nome", description = "Retorna uma lista de técnicos que contenham o nome fornecido")
+        @ApiResponse(responseCode = "200", description = "Lista de técnicos encontrados")
+        @GetMapping("/buscar/{nome}")
+        public ResponseEntity<List<Tecnico>> buscarTecnicosPorNome(
+                @Parameter(description = "Nome ou parte do nome do técnico") 
+                @PathVariable String nome) {
+            List<Tecnico> tecnicos = tecnicoService.findByNome(nome);
+            return ResponseEntity.ok(tecnicos);
+        }
 
         @PutMapping("/{id}")
         public ResponseEntity<Object> updateTecnico( @PathVariable Long id, @RequestBody Tecnico tecnico){

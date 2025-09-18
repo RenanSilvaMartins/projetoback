@@ -131,4 +131,14 @@ public class UsuarioController {
             @Valid @RequestBody LoginRequest loginRequest) {
         return login(loginRequest); // Delega para o método login existente
     }
+    
+    @Operation(summary = "Buscar usuários por nome", description = "Retorna uma lista de usuários que contenham o nome fornecido")
+    @ApiResponse(responseCode = "200", description = "Lista de usuários encontrados")
+    @GetMapping("/buscar/{nome}")
+    public ResponseEntity<List<Usuario>> buscarUsuariosPorNome(
+            @Parameter(description = "Nome ou parte do nome do usuário") 
+            @PathVariable String nome) {
+        List<Usuario> usuarios = usuarioService.findByNome(nome);
+        return ResponseEntity.ok(usuarios);
+    }
 }

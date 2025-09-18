@@ -8,6 +8,10 @@ package com.itb.inf2fm.projetoback.controller;
 import com.itb.inf2fm.projetoback.model.Cliente;
 import com.itb.inf2fm.projetoback.service.ClienteService;
 import com.itb.inf2fm.projetoback.service.PasswordEncryptService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -121,6 +125,18 @@ public class ClienteController {
     public ResponseEntity<List<Cliente>> getAllClientes(){
         return ResponseEntity.status(HttpStatus.OK)
                 .body(clienteService.findAll());
+    }
+    
+    @Operation(summary = "Buscar clientes por nome", description = "Retorna uma lista de clientes que contenham o nome fornecido")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lista de clientes encontrados")
+    })
+    @GetMapping("/buscar/{nome}")
+    public ResponseEntity<List<Cliente>> buscarClientesPorNome(
+            @Parameter(description = "Nome ou parte do nome do cliente") 
+            @PathVariable String nome) {
+        List<Cliente> clientes = clienteService.findByNome(nome);
+        return ResponseEntity.ok(clientes);
     }
 
     /**

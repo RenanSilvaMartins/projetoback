@@ -234,4 +234,11 @@ public class UsuarioService {
             return usuario;
         }
     }
+    
+    public List<Usuario> findByNome(String nome) {
+        if (nome == null || nome.trim().isEmpty()) {
+            return List.of();
+        }
+        return usuarioRepository.findByNomeContainingIgnoreCase(nome.trim());
+    }
 }

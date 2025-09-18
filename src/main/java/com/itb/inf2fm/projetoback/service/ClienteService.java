@@ -229,4 +229,11 @@ public class ClienteService {
         }
         return usuarioRepository.existsByEmail(email);
     }
+    
+    public List<Cliente> findByNome(String nome) {
+        if (nome == null || nome.trim().isEmpty()) {
+            return List.of();
+        }
+        return clienteRepository.findByNomeContainingIgnoreCase(nome.trim());
+    }
 }

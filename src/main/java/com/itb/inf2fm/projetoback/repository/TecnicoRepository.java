@@ -17,4 +17,6 @@ public interface TecnicoRepository extends JpaRepository<Tecnico, Long>{
     List<Tecnico> findByStatusTecnico(String statusTecnico);
     
     boolean existsByCpfCnpj(String cpfCnpj);
+    
+    List<Tecnico> findByUsuarioNomeContainingIgnoreCase(String nome);
 }
