@@ -22,17 +22,14 @@ public class Agendamento {
     @DateTimeFormat(pattern = "dd/MM/yyyy")
     private LocalDate dataAgendamento;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tecnico_id")
-    private Tecnico tecnico;
+    @Column(name = "tecnico_id")
+    private Long tecnicoId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "especialidade_id")
-    private Especialidade especialidade;
+    @Column(name = "especialidade_id")
+    private Long especialidadeId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id")
-    private Usuario usuario;
+    @Column(name = "usuario_id")
+    private Long usuarioId;
 
     @Column(name = "descricao", length = 200)
     private String descricao;
@@ -64,14 +61,14 @@ public class Agendamento {
     public LocalDate getDataAgendamento() { return dataAgendamento; }
     public void setDataAgendamento(LocalDate dataAgendamento) { this.dataAgendamento = dataAgendamento; }
 
-    public Tecnico getTecnico() { return tecnico; }
-    public void setTecnico(Tecnico tecnico) { this.tecnico = tecnico; }
+    public Long getTecnicoId() { return tecnicoId; }
+    public void setTecnicoId(Long tecnicoId) { this.tecnicoId = tecnicoId; }
 
-    public Especialidade getEspecialidade() { return especialidade; }
-    public void setEspecialidade(Especialidade especialidade) { this.especialidade = especialidade; }
+    public Long getEspecialidadeId() { return especialidadeId; }
+    public void setEspecialidadeId(Long especialidadeId) { this.especialidadeId = especialidadeId; }
 
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
+    public Long getUsuarioId() { return usuarioId; }
+    public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
 
     public String getDescricao() { return descricao; }
     public void setDescricao(String descricao) { this.descricao = descricao; }

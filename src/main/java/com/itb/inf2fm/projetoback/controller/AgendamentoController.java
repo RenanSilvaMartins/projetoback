@@ -52,8 +52,8 @@ public class AgendamentoController {
         agendamento.setSituacao(request.getStatus());
         agendamento.setPreco(request.getPreco());
         
-        agendamento.setTecnico(tecnicoRepository.findById(request.getTecnicoId()).orElse(null));
-        agendamento.setUsuario(usuarioRepository.findById(request.getUsuarioId()).orElse(null));
+        agendamento.setTecnicoId(request.getTecnicoId());
+        agendamento.setUsuarioId(request.getUsuarioId());
         
         return ResponseEntity.ok(agendamentoService.save(agendamento));
     }
@@ -72,8 +72,8 @@ public class AgendamentoController {
         agendamento.setSituacao(request.getStatus());
         agendamento.setPreco(request.getPreco());
         
-        agendamento.setTecnico(tecnicoRepository.findById(request.getTecnicoId()).orElse(null));
-        agendamento.setUsuario(usuarioRepository.findById(request.getUsuarioId()).orElse(null));
+        agendamento.setTecnicoId(request.getTecnicoId());
+        agendamento.setUsuarioId(request.getUsuarioId());
         
         return ResponseEntity.ok(agendamentoService.save(agendamento));
     }

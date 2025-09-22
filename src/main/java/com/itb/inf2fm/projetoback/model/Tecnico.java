@@ -56,8 +56,11 @@ public class Tecnico {
     private String descricao;
 
     @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "usuario_id", nullable = false)
+    @JoinColumn(name = "id")
     private Usuario usuario;
+
+    @Column(name = "usuario_id", nullable = false)
+    private Long usuarioId;
 
     @Column(name = "statusTecnico", length = 20, nullable = false)
     private String statusTecnico;
@@ -190,5 +193,11 @@ public class Tecnico {
         isValid = valid;
     }
 
+    public Long getUsuarioId() {
+        return usuarioId;
+    }
 
+    public void setUsuarioId(Long usuarioId) {
+        this.usuarioId = usuarioId;
+    }
 }
