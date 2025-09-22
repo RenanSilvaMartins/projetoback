@@ -116,19 +116,9 @@ public class RegiaoService {
         }
     }
 
-    // Método para inicializar regiões padrão
+    // Método para inicializar regiões padrão - DESABILITADO TEMPORARIAMENTE
     public void initializeDefaultRegioes() {
-        String[] regioesDefault = {"Norte", "Sul", "Leste", "Oeste", "Centro"};
-        
-        for (String nome : regioesDefault) {
-            if (!existsByNome(nome)) {
-                Regiao regiao = new Regiao();
-                regiao.setCidade("São Paulo"); // Cidade padrão, pode ser alterada
-                regiao.setNome(nome);
-                regiao.setDescricao("Região " + nome + " da cidade");
-                regiao.setStatusRegiao(STATUS_ATIVO);
-                save(regiao);
-            }
-        }
+        // Desabilitado para evitar erro de coluna
+        logger.info("Inicialização de regiões desabilitada temporariamente");
     }
 }

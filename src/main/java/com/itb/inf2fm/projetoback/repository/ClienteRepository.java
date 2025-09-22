@@ -16,8 +16,6 @@ import java.util.Optional;
 
 @Repository
 public interface ClienteRepository extends JpaRepository<Cliente, Long> {
-    Optional<Cliente> findByEmail(String email);
-
     Optional<Cliente> findByCpf(String cpf);
 
     Optional<Cliente> findByUsuarioEmail(String email);
@@ -26,5 +24,5 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     
     boolean existsByCpf(String cpf);
     
-    List<Cliente> findByNomeContainingIgnoreCase(String nome);
+    List<Cliente> findByUsuarioNomeContainingIgnoreCase(String nome);
 }

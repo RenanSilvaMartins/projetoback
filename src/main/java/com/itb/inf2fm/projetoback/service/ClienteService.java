@@ -234,6 +234,6 @@ public class ClienteService {
         if (nome == null || nome.trim().isEmpty()) {
             return List.of();
         }
-        return clienteRepository.findByNomeContainingIgnoreCase(nome.trim());
+        return clienteRepository.findByUsuarioNomeContainingIgnoreCase(nome);
     }
 }

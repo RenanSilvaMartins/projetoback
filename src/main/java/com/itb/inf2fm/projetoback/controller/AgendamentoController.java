@@ -46,7 +46,7 @@ public class AgendamentoController {
     public ResponseEntity<Agendamento> create(@RequestBody AgendamentoRequest request) {
         Agendamento agendamento = new Agendamento();
         agendamento.setDataAgendamento(LocalDate.parse(request.getDataAgendamento().substring(0, 10)));
-        agendamento.setHoraAgendamento(LocalTime.parse(request.getHorario()));
+        agendamento.setHoraAgendamento(LocalDate.parse(request.getDataAgendamento().substring(0, 10)));
         agendamento.setDescricao(request.getDescricao());
         agendamento.setUrgencia(request.getUrgencia());
         agendamento.setSituacao(request.getStatus());
@@ -66,7 +66,7 @@ public class AgendamentoController {
         Agendamento agendamento = new Agendamento();
         agendamento.setId(id);
         agendamento.setDataAgendamento(LocalDate.parse(request.getDataAgendamento().substring(0, 10)));
-        agendamento.setHoraAgendamento(LocalTime.parse(request.getHorario()));
+        agendamento.setHoraAgendamento(LocalDate.parse(request.getDataAgendamento().substring(0, 10)));
         agendamento.setDescricao(request.getDescricao());
         agendamento.setUrgencia(request.getUrgencia());
         agendamento.setSituacao(request.getStatus());

@@ -56,13 +56,8 @@ public class Tecnico {
     private String descricao;
 
     @OneToOne(fetch = FetchType.EAGER)
-    @MapsId
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
-    
-    // Campo transient para receber apenas o ID do usuario
-    @Transient
-    private Long usuarioId;
 
     @Column(name = "statusTecnico", length = 20, nullable = false)
     private String statusTecnico;
@@ -195,11 +190,5 @@ public class Tecnico {
         isValid = valid;
     }
 
-    public Long getUsuarioId() {
-        return usuarioId;
-    }
 
-    public void setUsuarioId(Long usuarioId) {
-        this.usuarioId = usuarioId;
-    }
 }

@@ -7,9 +7,6 @@ import java.util.Optional;
 
 public interface ServicoRepository extends JpaRepository<Servico, Long> {
     
-    Optional<Servico> findByNome(String nome);
-    
-    List<Servico> findByStatusServico(String statusServico);
-    
-    boolean existsByNome(String nome);
+    // Basic CRUD operations are inherited from JpaRepository
+    // Additional methods can be added here if needed
 }

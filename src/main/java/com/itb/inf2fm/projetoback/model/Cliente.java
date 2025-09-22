@@ -32,9 +32,6 @@ public class Cliente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "nome", length = 100, nullable = false)
-    private String nome;
-
     @Column(name = "cpf", length = 11, nullable = false)
     private String cpf;
 
@@ -42,15 +39,12 @@ public class Cliente {
     @DateTimeFormat(pattern = "dd/MM/yyyy")
     private LocalDate dataNascimento;
 
-    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
     @Column(name = "statusCliente", length = 20, nullable = false)
     private String statusCliente;
-
-    @Column(name = "email", length = 100, nullable = false, unique = true)
-    private String email;
 
     @Transient
     private String mensagemErro = "";
@@ -77,20 +71,13 @@ public class Cliente {
         this.id = id;
     }
 
+    // Nome e email vêm do Usuario relacionado
     public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
+        return usuario != null ? usuario.getNome() : null;
     }
 
     public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
+        return usuario != null ? usuario.getEmail() : null;
     }
 
     public String getCpf() {

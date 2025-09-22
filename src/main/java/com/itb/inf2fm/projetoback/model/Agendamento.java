@@ -1,9 +1,10 @@
 package com.itb.inf2fm.projetoback.model;
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 @Entity
 @Table(name = "Agendamento")
@@ -13,10 +14,12 @@ public class Agendamento {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "hora_agendamento")
-    private LocalTime horaAgendamento;
+    @Column(name = "horaAgendamento")
+    @DateTimeFormat(pattern = "dd/MM/yyyy")
+    private LocalDate horaAgendamento;
 
-    @Column(name = "data_agendamento")
+    @Column(name = "dataAgendamento")
+    @DateTimeFormat(pattern = "dd/MM/yyyy")
     private LocalDate dataAgendamento;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -43,85 +46,48 @@ public class Agendamento {
     @Column(name = "preco", precision = 15, scale = 2)
     private BigDecimal preco;
 
+    @Transient
+    private String mensagemErro = "";
+
+    @Transient
+    private boolean isValid = true;
+
     public Agendamento() {}
 
-    public Long getId() {
-        return id;
-    }
+    // Getters e Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public LocalDate getHoraAgendamento() { return horaAgendamento; }
+    public void setHoraAgendamento(LocalDate horaAgendamento) { this.horaAgendamento = horaAgendamento; }
 
-    public LocalTime getHoraAgendamento() {
-        return horaAgendamento;
-    }
+    public LocalDate getDataAgendamento() { return dataAgendamento; }
+    public void setDataAgendamento(LocalDate dataAgendamento) { this.dataAgendamento = dataAgendamento; }
 
-    public void setHoraAgendamento(LocalTime horaAgendamento) {
-        this.horaAgendamento = horaAgendamento;
-    }
+    public Tecnico getTecnico() { return tecnico; }
+    public void setTecnico(Tecnico tecnico) { this.tecnico = tecnico; }
 
-    public LocalDate getDataAgendamento() {
-        return dataAgendamento;
-    }
+    public Especialidade getEspecialidade() { return especialidade; }
+    public void setEspecialidade(Especialidade especialidade) { this.especialidade = especialidade; }
 
-    public void setDataAgendamento(LocalDate dataAgendamento) {
-        this.dataAgendamento = dataAgendamento;
-    }
+    public Usuario getUsuario() { return usuario; }
+    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
 
-    public Tecnico getTecnico() {
-        return tecnico;
-    }
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
 
-    public void setTecnico(Tecnico tecnico) {
-        this.tecnico = tecnico;
-    }
+    public String getUrgencia() { return urgencia; }
+    public void setUrgencia(String urgencia) { this.urgencia = urgencia; }
 
-    public Especialidade getEspecialidade() {
-        return especialidade;
-    }
+    public String getSituacao() { return situacao; }
+    public void setSituacao(String situacao) { this.situacao = situacao; }
 
-    public void setEspecialidade(Especialidade especialidade) {
-        this.especialidade = especialidade;
-    }
+    public BigDecimal getPreco() { return preco; }
+    public void setPreco(BigDecimal preco) { this.preco = preco; }
 
-    public Usuario getUsuario() {
-        return usuario;
-    }
+    public String getMensagemErro() { return mensagemErro; }
+    public void setMensagemErro(String mensagemErro) { this.mensagemErro = mensagemErro; }
 
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
-    }
-
-    public String getDescricao() {
-        return descricao;
-    }
-
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
-    }
-
-    public String getUrgencia() {
-        return urgencia;
-    }
-
-    public void setUrgencia(String urgencia) {
-        this.urgencia = urgencia;
-    }
-
-    public String getSituacao() {
-        return situacao;
-    }
-
-    public void setSituacao(String situacao) {
-        this.situacao = situacao;
-    }
-
-    public BigDecimal getPreco() {
-        return preco;
-    }
-
-    public void setPreco(BigDecimal preco) {
-        this.preco = preco;
-    }
+    public boolean isValid() { return isValid; }
+    public void setValid(boolean valid) { isValid = valid; }
 }

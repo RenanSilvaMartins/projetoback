@@ -1,38 +1,18 @@
 package com.itb.inf2fm.projetoback.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
 
 @Entity
-@Table(name = "Servico")
+@Table(name = "Servicos")
 public class Servico {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Nome é obrigatório")
-    @Size(max = 100, message = "Nome deve ter no máximo 100 caracteres")
-    @Column(name = "nome", length = 100, nullable = false)
-    private String nome;
-
-    @NotBlank(message = "Descrição é obrigatória")
-    @Size(max = 500, message = "Descrição deve ter no máximo 500 caracteres")
-    @Column(name = "descricao", length = 500, nullable = false)
-    private String descricao;
-
-    @NotNull(message = "Preço é obrigatório")
-    @Positive(message = "Preço deve ser positivo")
-    @Column(name = "preco", nullable = false)
-    private double preco;
-
-    @NotBlank(message = "Status é obrigatório")
-    @Size(max = 20, message = "Status deve ter no máximo 20 caracteres")
-    @Column(name = "statusServico", length = 20, nullable = false)
-    private String statusServico;
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id")
+    private Tecnico tecnico;
 
     @Transient
     private String mensagemErro = "";
@@ -43,13 +23,8 @@ public class Servico {
     public Servico() {
     }
 
-    public Servico(String nome, String descricao, double preco, String statusServico) {
-        this.nome = nome;
-        this.descricao = descricao;
-        this.preco = preco;
-        this.statusServico = statusServico;
-        this.mensagemErro = "";
-        this.isValid = true;
+    public Servico(Tecnico tecnico) {
+        this.tecnico = tecnico;
     }
 
     // Getters e Setters
@@ -61,36 +36,12 @@ public class Servico {
         this.id = id;
     }
 
-    public String getNome() {
-        return nome;
+    public Tecnico getTecnico() {
+        return tecnico;
     }
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public String getDescricao() {
-        return descricao;
-    }
-
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
-    }
-
-    public double getPreco() {
-        return preco;
-    }
-
-    public void setPreco(double preco) {
-        this.preco = preco;
-    }
-
-    public String getStatusServico() {
-        return statusServico;
-    }
-
-    public void setStatusServico(String statusServico) {
-        this.statusServico = statusServico;
+    public void setTecnico(Tecnico tecnico) {
+        this.tecnico = tecnico;
     }
 
     public String getMensagemErro() {
