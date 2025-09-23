@@ -7,15 +7,13 @@
 // Campos como nome, email, cpf, dataNascimento, statusCliente são essenciais para cadastro e autenticação
 package com.itb.inf2fm.projetoback.model;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -39,12 +37,9 @@ public class Cliente {
     @DateTimeFormat(pattern = "dd/MM/yyyy")
     private LocalDate dataNascimento;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id")
+    @ManyToOne
+    @JoinColumn(name = "usuario_id")
     private Usuario usuario;
-
-    @Column(name = "usuario_id", nullable = false)
-    private Long usuarioId;
 
     @Column(name = "statusCliente", length = 20, nullable = false)
     private String statusCliente;
@@ -93,52 +88,54 @@ public class Cliente {
             this.isValid = false;
             return;
         }
-        
+
         // Remove caracteres não numéricos
         String cpfLimpo = cpf.replaceAll("[^0-9]", "");
-        
+
         if (cpfLimpo.length() != CPF_LENGTH) {
             this.mensagemErro = "CPF deve conter " + CPF_LENGTH + " dígitos";
             this.isValid = false;
             return;
         }
-        
+
         if (!isValidCpf(cpfLimpo)) {
             this.mensagemErro = "CPF inválido";
             this.isValid = false;
             return;
         }
-        
+
         this.cpf = cpfLimpo;
         this.mensagemErro = "";
         this.isValid = true;
     }
-    
+
     private boolean isValidCpf(String cpf) {
         // Verifica se todos os dígitos são iguais
         if (cpf.matches("(\\d)\\1{10}")) {
             return false;
         }
-        
+
         // Calcula o primeiro dígito verificador
         int soma = 0;
         for (int i = 0; i < 9; i++) {
             soma += Character.getNumericValue(cpf.charAt(i)) * (10 - i);
         }
         int primeiroDigito = 11 - (soma % 11);
-        if (primeiroDigito >= 10) primeiroDigito = 0;
-        
+        if (primeiroDigito >= 10)
+            primeiroDigito = 0;
+
         // Calcula o segundo dígito verificador
         soma = 0;
         for (int i = 0; i < 10; i++) {
             soma += Character.getNumericValue(cpf.charAt(i)) * (11 - i);
         }
         int segundoDigito = 11 - (soma % 11);
-        if (segundoDigito >= 10) segundoDigito = 0;
-        
+        if (segundoDigito >= 10)
+            segundoDigito = 0;
+
         // Verifica se os dígitos calculados conferem com os informados
         return Character.getNumericValue(cpf.charAt(9)) == primeiroDigito &&
-               Character.getNumericValue(cpf.charAt(10)) == segundoDigito;
+                Character.getNumericValue(cpf.charAt(10)) == segundoDigito;
     }
 
     public LocalDate getDataNascimento() {
@@ -205,13 +202,5 @@ public class Cliente {
 
     public void setValid(boolean valid) {
         isValid = valid;
-    }
-
-    public Long getUsuarioId() {
-        return usuarioId;
-    }
-
-    public void setUsuarioId(Long usuarioId) {
-        this.usuarioId = usuarioId;
     }
 }

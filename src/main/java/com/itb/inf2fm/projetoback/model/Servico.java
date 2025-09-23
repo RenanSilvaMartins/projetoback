@@ -3,28 +3,19 @@ package com.itb.inf2fm.projetoback.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "Servicos")
+@Table(name = "Servico")
 public class Servico {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id")
-    private Tecnico tecnico;
-
-    @Transient
-    private String mensagemErro = "";
-
-    @Transient
-    private boolean isValid = true;
+    private String nome;
+    private String duracao;
+    private double preco;
+    private String tipo;
 
     public Servico() {
-    }
-
-    public Servico(Tecnico tecnico) {
-        this.tecnico = tecnico;
     }
 
     // Getters e Setters
@@ -36,27 +27,35 @@ public class Servico {
         this.id = id;
     }
 
-    public Tecnico getTecnico() {
-        return tecnico;
+    public String getNome() {
+        return nome;
     }
 
-    public void setTecnico(Tecnico tecnico) {
-        this.tecnico = tecnico;
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
-    public String getMensagemErro() {
-        return mensagemErro;
+    public String getDuracao() {
+        return duracao;
     }
 
-    public void setMensagemErro(String mensagemErro) {
-        this.mensagemErro = mensagemErro;
+    public void setDuracao(String duracao) {
+        this.duracao = duracao;
     }
 
-    public boolean isValid() {
-        return isValid;
+    public double getPreco() {
+        return preco;
     }
 
-    public void setValid(boolean valid) {
-        isValid = valid;
+    public void setPreco(double preco) {
+        this.preco = preco;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
     }
 }

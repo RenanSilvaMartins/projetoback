@@ -12,23 +12,6 @@ import java.util.Set;
 @Table(name = "Tecnico")
 public class Tecnico {
 
-    public Tecnico() {
-    }
-
-    public Tecnico(String cpfCnpj, LocalDate dataNascimento, String telefone, String cep, 
-                   String numeroResidencia, String complemento, String descricao, 
-                   Usuario usuario, String statusTecnico) {
-        this.cpfCnpj = cpfCnpj;
-        this.dataNascimento = dataNascimento;
-        this.telefone = telefone;
-        this.cep = cep;
-        this.numeroResidencia = numeroResidencia;
-        this.complemento = complemento;
-        this.descricao = descricao;
-        this.usuario = usuario;
-        this.statusTecnico = statusTecnico;
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -55,30 +38,38 @@ public class Tecnico {
     @Column(name = "descricao", length = 400, nullable = false)
     private String descricao;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id")
+    @ManyToOne
+    @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
-    @Column(name = "usuario_id", nullable = false)
-    private Long usuarioId;
 
     @Column(name = "statusTecnico", length = 20, nullable = false)
     private String statusTecnico;
 
-    // Relacionamentos Many-to-Many
-    @OneToMany(mappedBy = "tecnico", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
-    private Set<TecnicoRegiao> tecnicoRegioes = new HashSet<>();
-
-    @OneToMany(mappedBy = "tecnico", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
-    private Set<TecnicoEspecialidade> tecnicoEspecialidades = new HashSet<>();
 
     @Transient
     private String mensagemErro = "";
 
     @Transient
     private boolean isValid = true;
+
+    
+    public Tecnico() {
+    }
+
+    public Tecnico(String cpfCnpj, LocalDate dataNascimento, String telefone, String cep, 
+                   String numeroResidencia, String complemento, String descricao, 
+                   Usuario usuario, String statusTecnico) {
+        this.cpfCnpj = cpfCnpj;
+        this.dataNascimento = dataNascimento;
+        this.telefone = telefone;
+        this.cep = cep;
+        this.numeroResidencia = numeroResidencia;
+        this.complemento = complemento;
+        this.descricao = descricao;
+        this.usuario = usuario;
+        this.statusTecnico = statusTecnico;
+    }
 
     // Getters e Setters
     public Long getId() {
@@ -161,22 +152,7 @@ public class Tecnico {
         this.statusTecnico = statusTecnico;
     }
 
-    public Set<TecnicoRegiao> getTecnicoRegioes() {
-        return new HashSet<>(tecnicoRegioes);
-    }
-
-    public void setTecnicoRegioes(Set<TecnicoRegiao> tecnicoRegioes) {
-        this.tecnicoRegioes = tecnicoRegioes;
-    }
-
-    public Set<TecnicoEspecialidade> getTecnicoEspecialidades() {
-        return new HashSet<>(tecnicoEspecialidades);
-    }
-
-    public void setTecnicoEspecialidades(Set<TecnicoEspecialidade> tecnicoEspecialidades) {
-        this.tecnicoEspecialidades = tecnicoEspecialidades;
-    }
-
+ 
     public String getMensagemErro() {
         return mensagemErro;
     }
@@ -193,11 +169,4 @@ public class Tecnico {
         isValid = valid;
     }
 
-    public Long getUsuarioId() {
-        return usuarioId;
-    }
-
-    public void setUsuarioId(Long usuarioId) {
-        this.usuarioId = usuarioId;
-    }
 }
