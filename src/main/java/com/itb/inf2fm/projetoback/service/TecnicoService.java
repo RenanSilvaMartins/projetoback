@@ -8,13 +8,11 @@ import com.itb.inf2fm.projetoback.exceptions.NotFound;
 import com.itb.inf2fm.projetoback.model.Tecnico;
 import com.itb.inf2fm.projetoback.model.Usuario;
 import com.itb.inf2fm.projetoback.model.TecnicoRegiao;
-import com.itb.inf2fm.projetoback.model.TecnicoEspecialidade;
+
 import com.itb.inf2fm.projetoback.repository.TecnicoRepository;
 import com.itb.inf2fm.projetoback.repository.UsuarioRepository;
 import com.itb.inf2fm.projetoback.repository.TecnicoRegiaoRepository;
-import com.itb.inf2fm.projetoback.repository.TecnicoEspecialidadeRepository;
 import com.itb.inf2fm.projetoback.repository.RegiaoRepository;
-import com.itb.inf2fm.projetoback.repository.EspecialidadeRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,22 +34,16 @@ public class TecnicoService {
     private final TecnicoRepository tecnicoRepository;
     private final UsuarioRepository usuarioRepository;
     private final TecnicoRegiaoRepository tecnicoRegiaoRepository;
-    private final TecnicoEspecialidadeRepository tecnicoEspecialidadeRepository;
     private final RegiaoRepository regiaoRepository;
-    private final EspecialidadeRepository especialidadeRepository;
 
     public TecnicoService(TecnicoRepository tecnicoRepository, 
                          UsuarioRepository usuarioRepository,
                          TecnicoRegiaoRepository tecnicoRegiaoRepository,
-                         TecnicoEspecialidadeRepository tecnicoEspecialidadeRepository,
-                         RegiaoRepository regiaoRepository,
-                         EspecialidadeRepository especialidadeRepository) {
+                         RegiaoRepository regiaoRepository) {
         this.tecnicoRepository = tecnicoRepository;
         this.usuarioRepository = usuarioRepository;
         this.tecnicoRegiaoRepository = tecnicoRegiaoRepository;
-        this.tecnicoEspecialidadeRepository = tecnicoEspecialidadeRepository;
         this.regiaoRepository = regiaoRepository;
-        this.especialidadeRepository = especialidadeRepository;
     }
 
     @Transactional
@@ -171,7 +163,6 @@ public class TecnicoService {
         if (tecnicoOptional.isPresent()) {
             // Remove relacionamentos primeiro
             tecnicoRegiaoRepository.deleteByTecnicoId(id);
-            tecnicoEspecialidadeRepository.deleteByTecnicoId(id);
             // Remove o técnico
             tecnicoRepository.deleteById(id);
             return true;
@@ -231,37 +222,6 @@ public class TecnicoService {
         return tecnicoRegiaoRepository.findByTecnicoId(tecnicoId);
     }
 
-    // Métodos para gerenciar especialidades do técnico
-    @Transactional
-    public void adicionarEspecialidade(Long tecnicoId, Long especialidadeId) {
-        Tecnico tecnico = tecnicoRepository.findById(tecnicoId)
-                .orElseThrow(() -> new NotFound("Técnico não encontrado com ID: " + tecnicoId));
-        
-        var especialidade = especialidadeRepository.findById(especialidadeId)
-                .orElseThrow(() -> new NotFound("Especialidade não encontrada com ID: " + especialidadeId));
-        
-        TecnicoEspecialidade tecnicoEspecialidade = new TecnicoEspecialidade();
-        tecnicoEspecialidade.setTecnico(tecnico);
-        tecnicoEspecialidade.setEspecialidade(especialidade);
-        tecnicoEspecialidade.setStatusTecnicoEspecialidade(STATUS_ATIVO);
-        tecnicoEspecialidadeRepository.save(tecnicoEspecialidade);
-    }
-
-    @Transactional
-    public void removerEspecialidade(Long tecnicoId, Long especialidadeId) {
-        if (!tecnicoRepository.existsById(tecnicoId)) {
-            throw new NotFound("Técnico não encontrado com ID: " + tecnicoId);
-        }
-        tecnicoEspecialidadeRepository.deleteByTecnicoIdAndEspecialidadeId(tecnicoId, especialidadeId);
-    }
-
-    public List<TecnicoEspecialidade> getEspecialidadesByTecnico(Long tecnicoId) {
-        if (!tecnicoRepository.existsById(tecnicoId)) {
-            throw new NotFound("Técnico não encontrado com ID: " + tecnicoId);
-        }
-        return tecnicoEspecialidadeRepository.findByTecnicoId(tecnicoId);
-    }
-    
     public List<Tecnico> findByNome(String nome) {
         if (nome == null || nome.trim().isEmpty()) {
             return List.of();

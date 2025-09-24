@@ -11,7 +11,7 @@ public class AgendamentoRequest {
     private String dataAgendamento;
     private String horario;
     private String urgencia;
-    private BigDecimal preco;
+    private double preco;
     private String status;
 
     public Long getUsuarioId() {
@@ -78,11 +78,11 @@ public class AgendamentoRequest {
         this.urgencia = urgencia;
     }
 
-    public BigDecimal getPreco() {
+    public double getPreco() {
         return preco;
     }
 
-    public void setPreco(BigDecimal preco) {
+    public void setPreco(double preco) {
         this.preco = preco;
     }
 

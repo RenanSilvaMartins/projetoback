@@ -1,11 +1,15 @@
 package com.itb.inf2fm.projetoback.service;
 
+import com.itb.inf2fm.projetoback.dto.AgendamentoRequest;
 import com.itb.inf2fm.projetoback.model.Agendamento;
+import com.itb.inf2fm.projetoback.model.Tecnico;
+import com.itb.inf2fm.projetoback.model.Usuario;
 import com.itb.inf2fm.projetoback.repository.AgendamentoRepository;
 import com.itb.inf2fm.projetoback.repository.TecnicoRepository;
-import com.itb.inf2fm.projetoback.repository.EspecialidadeRepository;
+
 import com.itb.inf2fm.projetoback.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -22,9 +26,6 @@ public class AgendamentoService {
     private TecnicoRepository tecnicoRepository;
 
     @Autowired
-    private EspecialidadeRepository especialidadeRepository;
-
-    @Autowired
     private UsuarioRepository usuarioRepository;
 
     public List<Agendamento> findAll() {
@@ -35,8 +36,49 @@ public class AgendamentoService {
         return agendamentoRepository.findById(id);
     }
 
-    public Agendamento save(Agendamento agendamento) {
+    public Agendamento save(AgendamentoRequest request) {
+
+        Agendamento agendamento = new Agendamento();
+        agendamento.setDataAgendamento(LocalDate.parse(request.getDataAgendamento().substring(0, 10)));
+        agendamento.setHoraAgendamento(request.getDataAgendamento());
+        agendamento.setDescricao(request.getDescricao());
+        agendamento.setUrgencia(request.getUrgencia());
+        agendamento.setSituacao(request.getStatus());
+        agendamento.setPreco(request.getPreco());
+
+        Tecnico tecnico = tecnicoRepository.findById(request.getTecnicoId())
+                .orElseThrow(() -> new IllegalArgumentException("Técnico não encontrado"));
+        agendamento.setTecnico(tecnico);
+
+        Usuario usuario = usuarioRepository.findById(request.getUsuarioId())
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+        agendamento.setUsuario(usuario);
+
         return agendamentoRepository.save(agendamento);
+    }
+
+    public Agendamento update(Long id, AgendamentoRequest request) {
+        if (agendamentoRepository.findById(id).isPresent()) {
+            Agendamento agendamento = new Agendamento();
+            agendamento.setId(id);
+            agendamento.setDataAgendamento(LocalDate.parse(request.getDataAgendamento().substring(0, 10)));
+            agendamento.setHoraAgendamento(request.getDataAgendamento());
+            agendamento.setDescricao(request.getDescricao());
+            agendamento.setUrgencia(request.getUrgencia());
+            agendamento.setSituacao(request.getStatus());
+            agendamento.setPreco(request.getPreco());
+
+            Tecnico tecnico = tecnicoRepository.findById(request.getTecnicoId())
+                    .orElseThrow(() -> new IllegalArgumentException("Técnico não encontrado"));
+            agendamento.setTecnico(tecnico);
+
+            Usuario usuario = usuarioRepository.findById(request.getUsuarioId())
+                    .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+            agendamento.setUsuario(usuario);
+
+            return agendamentoRepository.save(agendamento);
+        }
+        return null;
     }
 
     public void deleteById(Long id) {

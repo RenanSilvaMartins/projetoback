@@ -4,7 +4,7 @@ import com.itb.inf2fm.projetoback.dto.AgendamentoRequest;
 import com.itb.inf2fm.projetoback.model.Agendamento;
 import com.itb.inf2fm.projetoback.service.AgendamentoService;
 import com.itb.inf2fm.projetoback.repository.TecnicoRepository;
-import com.itb.inf2fm.projetoback.repository.EspecialidadeRepository;
+
 import com.itb.inf2fm.projetoback.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,14 +18,12 @@ import java.util.List;
 @RequestMapping("/agendamento")
 public class AgendamentoController {
 
-    @Autowired
+    @Autowired  
     private AgendamentoService agendamentoService;
 
     @Autowired
     private TecnicoRepository tecnicoRepository;
 
-    @Autowired
-    private EspecialidadeRepository especialidadeRepository;
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -44,18 +42,7 @@ public class AgendamentoController {
 
     @PostMapping
     public ResponseEntity<Agendamento> create(@RequestBody AgendamentoRequest request) {
-        Agendamento agendamento = new Agendamento();
-        agendamento.setDataAgendamento(LocalDate.parse(request.getDataAgendamento().substring(0, 10)));
-        agendamento.setHoraAgendamento(LocalDate.parse(request.getDataAgendamento().substring(0, 10)));
-        agendamento.setDescricao(request.getDescricao());
-        agendamento.setUrgencia(request.getUrgencia());
-        agendamento.setSituacao(request.getStatus());
-        agendamento.setPreco(request.getPreco());
-        
-        agendamento.setTecnicoId(request.getTecnicoId());
-        agendamento.setUsuarioId(request.getUsuarioId());
-        
-        return ResponseEntity.ok(agendamentoService.save(agendamento));
+        return ResponseEntity.ok(agendamentoService.save(request));
     }
 
     @PutMapping("/{id}")
@@ -63,19 +50,7 @@ public class AgendamentoController {
         if (!agendamentoService.findById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        Agendamento agendamento = new Agendamento();
-        agendamento.setId(id);
-        agendamento.setDataAgendamento(LocalDate.parse(request.getDataAgendamento().substring(0, 10)));
-        agendamento.setHoraAgendamento(LocalDate.parse(request.getDataAgendamento().substring(0, 10)));
-        agendamento.setDescricao(request.getDescricao());
-        agendamento.setUrgencia(request.getUrgencia());
-        agendamento.setSituacao(request.getStatus());
-        agendamento.setPreco(request.getPreco());
-        
-        agendamento.setTecnicoId(request.getTecnicoId());
-        agendamento.setUsuarioId(request.getUsuarioId());
-        
-        return ResponseEntity.ok(agendamentoService.save(agendamento));
+        return ResponseEntity.ok(agendamentoService.update(id, request));
     }
 
     @DeleteMapping("/{id}")

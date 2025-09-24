@@ -15,21 +15,23 @@ public class Agendamento {
     private Long id;
 
     @Column(name = "horaAgendamento")
-    @DateTimeFormat(pattern = "dd/MM/yyyy")
-    private LocalDate horaAgendamento;
+    private String horaAgendamento;
 
     @Column(name = "dataAgendamento")
     @DateTimeFormat(pattern = "dd/MM/yyyy")
     private LocalDate dataAgendamento;
 
-    @Column(name = "tecnico_id")
-    private Long tecnicoId;
+    @ManyToOne
+    @JoinColumn(name = "tecnico_id")
+    private Tecnico tecnico;
 
-    @Column(name = "especialidade_id")
-    private Long especialidadeId;
+    @ManyToOne
+    @JoinColumn(name = "servico_id")
+    private Servico servico;
 
-    @Column(name = "usuario_id")
-    private Long usuarioId;
+    @ManyToOne
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
 
     @Column(name = "descricao", length = 200)
     private String descricao;
@@ -40,8 +42,8 @@ public class Agendamento {
     @Column(name = "situacao", length = 200)
     private String situacao;
 
-    @Column(name = "preco", precision = 15, scale = 2)
-    private BigDecimal preco;
+    @Column(name = "preco")
+    private double preco;
 
     @Transient
     private String mensagemErro = "";
@@ -49,42 +51,103 @@ public class Agendamento {
     @Transient
     private boolean isValid = true;
 
-    public Agendamento() {}
+    public Agendamento() {
+    }
 
     // Getters e Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public LocalDate getHoraAgendamento() { return horaAgendamento; }
-    public void setHoraAgendamento(LocalDate horaAgendamento) { this.horaAgendamento = horaAgendamento; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public LocalDate getDataAgendamento() { return dataAgendamento; }
-    public void setDataAgendamento(LocalDate dataAgendamento) { this.dataAgendamento = dataAgendamento; }
+    public String getHoraAgendamento() {
+        return horaAgendamento;
+    }
 
-    public Long getTecnicoId() { return tecnicoId; }
-    public void setTecnicoId(Long tecnicoId) { this.tecnicoId = tecnicoId; }
+    public void setHoraAgendamento(String horaAgendamento) {
+        this.horaAgendamento = horaAgendamento;
+    }
 
-    public Long getEspecialidadeId() { return especialidadeId; }
-    public void setEspecialidadeId(Long especialidadeId) { this.especialidadeId = especialidadeId; }
+    public LocalDate getDataAgendamento() {
+        return dataAgendamento;
+    }
 
-    public Long getUsuarioId() { return usuarioId; }
-    public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
+    public void setDataAgendamento(LocalDate dataAgendamento) {
+        this.dataAgendamento = dataAgendamento;
+    }
 
-    public String getDescricao() { return descricao; }
-    public void setDescricao(String descricao) { this.descricao = descricao; }
+    public String getDescricao() {
+        return descricao;
+    }
 
-    public String getUrgencia() { return urgencia; }
-    public void setUrgencia(String urgencia) { this.urgencia = urgencia; }
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
+    }
 
-    public String getSituacao() { return situacao; }
-    public void setSituacao(String situacao) { this.situacao = situacao; }
+    public String getUrgencia() {
+        return urgencia;
+    }
 
-    public BigDecimal getPreco() { return preco; }
-    public void setPreco(BigDecimal preco) { this.preco = preco; }
+    public void setUrgencia(String urgencia) {
+        this.urgencia = urgencia;
+    }
 
-    public String getMensagemErro() { return mensagemErro; }
-    public void setMensagemErro(String mensagemErro) { this.mensagemErro = mensagemErro; }
+    public String getSituacao() {
+        return situacao;
+    }
 
-    public boolean isValid() { return isValid; }
-    public void setValid(boolean valid) { isValid = valid; }
+    public void setSituacao(String situacao) {
+        this.situacao = situacao;
+    }
+
+    public double getPreco() {
+        return preco;
+    }
+
+    public void setPreco(double preco) {
+        this.preco = preco;
+    }
+
+    public Servico getServico() {
+        return servico;
+    }
+
+    public void setServico(Servico servico) {
+        this.servico = servico;
+    }
+
+    public Tecnico getTecnico() {
+        return tecnico;
+    }
+
+    public void setTecnico(Tecnico tecnico) {
+        this.tecnico = tecnico;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
+    }
+
+    public String getMensagemErro() {
+        return mensagemErro;
+    }
+
+    public void setMensagemErro(String mensagemErro) {
+        this.mensagemErro = mensagemErro;
+    }
+
+    public boolean isValid() {
+        return isValid;
+    }
+
+    public void setValid(boolean valid) {
+        isValid = valid;
+    }
 }

@@ -16,7 +16,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/h2-console/**", "/actuator/**").permitAll()
+                .requestMatchers("/actuator/**").permitAll()
                 .anyRequest().permitAll()
             )
             .headers(headers -> headers

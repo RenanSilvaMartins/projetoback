@@ -35,9 +35,6 @@ public class Regiao {
     @Column(name = "statusRegiao", length = 20, nullable = false)
     private String statusRegiao;
 
-    @OneToMany(mappedBy = "regiao", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
-    @JsonIgnore
-    private Set<TecnicoRegiao> tecnicoRegioes = new HashSet<>();
 
     @Transient
     private String mensagemErro = "";
@@ -84,14 +81,6 @@ public class Regiao {
 
     public void setStatusRegiao(String statusRegiao) {
         this.statusRegiao = statusRegiao;
-    }
-
-    public Set<TecnicoRegiao> getTecnicoRegioes() {
-        return tecnicoRegioes;
-    }
-
-    public void setTecnicoRegioes(Set<TecnicoRegiao> tecnicoRegioes) {
-        this.tecnicoRegioes = tecnicoRegioes;
     }
 
     public String getMensagemErro() {

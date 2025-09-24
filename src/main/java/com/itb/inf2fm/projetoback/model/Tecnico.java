@@ -5,8 +5,6 @@ import jakarta.persistence.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "Tecnico")
@@ -38,14 +36,15 @@ public class Tecnico {
     @Column(name = "descricao", length = 400, nullable = false)
     private String descricao;
 
+    @Column(name = "especialidade", length = 100, nullable = false)
+    private String especialidade;
+
     @ManyToOne
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
-
     @Column(name = "statusTecnico", length = 20, nullable = false)
     private String statusTecnico;
-
 
     @Transient
     private String mensagemErro = "";
@@ -53,13 +52,12 @@ public class Tecnico {
     @Transient
     private boolean isValid = true;
 
-    
     public Tecnico() {
     }
 
-    public Tecnico(String cpfCnpj, LocalDate dataNascimento, String telefone, String cep, 
-                   String numeroResidencia, String complemento, String descricao, 
-                   Usuario usuario, String statusTecnico) {
+    public Tecnico(String cpfCnpj, LocalDate dataNascimento, String telefone, String cep,
+            String numeroResidencia, String complemento, String descricao, String especialidade,
+            Usuario usuario, String statusTecnico) {
         this.cpfCnpj = cpfCnpj;
         this.dataNascimento = dataNascimento;
         this.telefone = telefone;
@@ -67,6 +65,7 @@ public class Tecnico {
         this.numeroResidencia = numeroResidencia;
         this.complemento = complemento;
         this.descricao = descricao;
+        this.especialidade = especialidade;
         this.usuario = usuario;
         this.statusTecnico = statusTecnico;
     }
@@ -136,6 +135,14 @@ public class Tecnico {
         this.descricao = descricao;
     }
 
+    public String getEspecialidade() {
+        return especialidade;
+    }
+
+    public void setEspecialidade(String especialidade) {
+        this.especialidade = especialidade;
+    }
+
     public Usuario getUsuario() {
         return usuario;
     }
@@ -152,7 +159,6 @@ public class Tecnico {
         this.statusTecnico = statusTecnico;
     }
 
- 
     public String getMensagemErro() {
         return mensagemErro;
     }
