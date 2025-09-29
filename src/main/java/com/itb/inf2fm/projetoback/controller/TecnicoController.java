@@ -75,8 +75,15 @@ public class TecnicoController {
             if (tecnico == null || tecnico.getUsuario() == null) {
                 return ResponseEntity.badRequest().body("Dados do técnico são obrigatórios");
             }
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(tecnicoService.save(tecnico));
+            if (tecnico.getUsuario().getSenha() == null || tecnico.getUsuario().getSenha().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Senha do usuário é obrigatória");
+            }
+            try {
+                return ResponseEntity.status(HttpStatus.CREATED)
+                        .body(tecnicoService.salvarTecnico(tecnico));
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(e.getMessage());
+            }
         }
 
         @Operation(summary = "Buscar técnico por ID", description = "Retorna um técnico específico baseado no ID fornecido")
@@ -87,7 +94,7 @@ public class TecnicoController {
             @ApiResponse(responseCode = "404", description = "Técnico não encontrado"),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
         })
-        @GetMapping("/tecnico/{id}")
+        @GetMapping("/{id}")
         public ResponseEntity<Tecnico> getTecnicoById(
                 @Parameter(description = "ID do técnico", required = true, example = "1")
                 @PathVariable Long id) {

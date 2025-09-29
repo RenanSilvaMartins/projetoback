@@ -52,6 +52,10 @@ public class TecnicoService {
             throw new IllegalArgumentException("Técnico e usuário são obrigatórios");
         }
         
+        if (tecnico.getUsuario().getSenha() == null || tecnico.getUsuario().getSenha().trim().isEmpty()) {
+            throw new IllegalArgumentException("Senha do usuário é obrigatória");
+        }
+        
         // Criptografa a senha do usuário
         tecnico.getUsuario().setSenha(BCrypt.hashpw(tecnico.getUsuario().getSenha(), BCrypt.gensalt()));
         
