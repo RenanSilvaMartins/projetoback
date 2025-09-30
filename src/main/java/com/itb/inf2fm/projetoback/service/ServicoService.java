@@ -1,70 +1,55 @@
 package com.itb.inf2fm.projetoback.service;
 
+import com.itb.inf2fm.projetoback.exception.ResourceNotFoundException;
 import com.itb.inf2fm.projetoback.model.Servico;
 import com.itb.inf2fm.projetoback.repository.ServicoRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataAccessException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ServicoService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ServicoService.class);
+    @Autowired
+    private ServicoRepository servicoRepository;
 
-
-    private final ServicoRepository servicoRepository;
-    
-    public ServicoService(ServicoRepository servicoRepository) {
-        this.servicoRepository = servicoRepository;
+    public List<Servico> listarTodos() {
+        return servicoRepository.findAll();
     }
 
-    public Servico save(Servico servico) {
-        if (servico == null) {
-            throw new IllegalArgumentException("Serviço não pode ser nulo");
-        }
-        try {
-            return servicoRepository.save(servico);
-        } catch (DataAccessException e) {
-            logger.error("Erro ao salvar serviço: {}", e.getMessage(), e);
-            throw new RuntimeException("Erro ao salvar serviço", e);
-        }
+    public Servico buscarPorId(Long id) {
+        return servicoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado com ID: " + id));
     }
 
-    public Servico findById(Long id) {
-        try {
-            Optional<Servico> servicoOpt = servicoRepository.findById(id);
-            return servicoOpt.orElse(null);
-        } catch (DataAccessException e) {
-            logger.error("Erro ao buscar serviço por ID: {}", id, e);
-            throw new RuntimeException("Erro ao buscar serviço", e);
-        }
+    public List<Servico> buscarPorNome(String nome) {
+        return servicoRepository.findByNomeContainingIgnoreCase(nome);
     }
 
-    public List<Servico> findAll() {
-        try {
-            return servicoRepository.findAll();
-        } catch (DataAccessException e) {
-            logger.error("Erro ao buscar todos os serviços: {}", e.getMessage(), e);
-            throw new RuntimeException("Erro ao buscar serviços", e);
-        }
+    public List<Servico> buscarPorTipo(String tipo) {
+        return servicoRepository.findByTipoIgnoreCase(tipo);
     }
 
-    public boolean delete(Long id) {
-        try {
-            if (servicoRepository.existsById(id)) {
-                servicoRepository.deleteById(id);
-                return true;
-            }
-            return false;
-        } catch (DataAccessException e) {
-            logger.error("Erro ao deletar serviço com ID: {}", id, e);
-            throw new RuntimeException("Erro ao deletar serviço", e);
-        }
+    public List<Servico> buscarPorTermo(String termo) {
+        return servicoRepository.buscarPorTermo(termo);
     }
 
+    public Servico salvar(Servico servico) {
+        return servicoRepository.save(servico);
+    }
 
+    public Servico atualizar(Long id, Servico servicoAtualizado) {
+        Servico servico = buscarPorId(id);
+        servico.setNome(servicoAtualizado.getNome());
+        servico.setDuracao(servicoAtualizado.getDuracao());
+        servico.setPreco(servicoAtualizado.getPreco());
+        servico.setTipo(servicoAtualizado.getTipo());
+        return servicoRepository.save(servico);
+    }
+
+    public void deletar(Long id) {
+        Servico servico = buscarPorId(id);
+        servicoRepository.delete(servico);
+    }
 }

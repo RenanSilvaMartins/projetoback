@@ -59,7 +59,7 @@ public class AdminController {
             @Parameter(description = "Dados do serviço a ser criado", required = true)
             @Valid @RequestBody Servico servico) {
         try {
-            Servico saved = servicoService.save(servico);
+            Servico saved = servicoService.salvar(servico);
             return new ResponseEntity<>(saved, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -76,7 +76,7 @@ public class AdminController {
     @GetMapping("/servicos")
     public ResponseEntity<List<Servico>> getAllServicos() {
         try {
-            List<Servico> servicos = servicoService.findAll();
+            List<Servico> servicos = servicoService.listarTodos();
             return new ResponseEntity<>(servicos, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -94,10 +94,7 @@ public class AdminController {
             @Parameter(description = "ID do serviço", required = true, example = "1")
             @PathVariable Long id) {
         try {
-            boolean deleted = servicoService.delete(id);
-            if (!deleted) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
+            servicoService.deletar(id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
