@@ -4,8 +4,13 @@ import com.itb.inf2fm.projetoback.dto.AgendamentoRequest;
 import com.itb.inf2fm.projetoback.model.Agendamento;
 import com.itb.inf2fm.projetoback.service.AgendamentoService;
 import com.itb.inf2fm.projetoback.repository.TecnicoRepository;
-
 import com.itb.inf2fm.projetoback.repository.UsuarioRepository;
+import com.itb.inf2fm.projetoback.repository.ServicoRepository;
+import com.itb.inf2fm.projetoback.model.Tecnico;
+import com.itb.inf2fm.projetoback.model.Usuario;
+import com.itb.inf2fm.projetoback.model.Servico;
+import com.itb.inf2fm.projetoback.model.Cliente;
+import com.itb.inf2fm.projetoback.repository.ClienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +32,12 @@ public class AgendamentoController {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+    
+    @Autowired
+    private ServicoRepository servicoRepository;
+    
+    @Autowired
+    private ClienteRepository clienteRepository;
 
     @GetMapping
     public List<Agendamento> findAll() {
@@ -75,5 +86,27 @@ public class AgendamentoController {
     @GetMapping("/data/{dataAgendamento}")
     public List<Agendamento> findByDataAgendamento(@PathVariable LocalDate dataAgendamento) {
         return agendamentoService.findByDataAgendamento(dataAgendamento);
+    }
+    
+    // Endpoints para facilitar o cadastro de agendamentos
+    
+    @GetMapping("/tecnicos-disponiveis")
+    public List<Tecnico> getTecnicosDisponiveis() {
+        return tecnicoRepository.findByStatusTecnico("ATIVO");
+    }
+    
+    @GetMapping("/usuarios-disponiveis")
+    public List<Usuario> getUsuariosDisponiveis() {
+        return usuarioRepository.findAll();
+    }
+    
+    @GetMapping("/servicos-disponiveis")
+    public List<Servico> getServicosDisponiveis() {
+        return servicoRepository.findAll();
+    }
+    
+    @GetMapping("/clientes-disponiveis")
+    public List<Cliente> getClientesDisponiveis() {
+        return clienteRepository.findAll();
     }
 }

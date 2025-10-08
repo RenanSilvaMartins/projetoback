@@ -5,14 +5,18 @@ import java.math.BigDecimal;
 public class AgendamentoRequest {
     private Long usuarioId;
     private Long tecnicoId;
+    private Long servicoId;
+    private Long clienteId;
     private String servico;
     private String descricao;
     private String endereco;
     private String dataAgendamento;
+    private String horaAgendamento;
     private String horario;
     private String urgencia;
     private double preco;
     private String status;
+    private String situacao;
 
     public Long getUsuarioId() {
         return usuarioId;
@@ -92,5 +96,37 @@ public class AgendamentoRequest {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Long getServicoId() {
+        return servicoId;
+    }
+
+    public void setServicoId(Long servicoId) {
+        this.servicoId = servicoId;
+    }
+
+    public Long getClienteId() {
+        return clienteId;
+    }
+
+    public void setClienteId(Long clienteId) {
+        this.clienteId = clienteId;
+    }
+
+    public String getHoraAgendamento() {
+        return horaAgendamento;
+    }
+
+    public void setHoraAgendamento(String horaAgendamento) {
+        this.horaAgendamento = horaAgendamento;
+    }
+
+    public String getSituacao() {
+        return situacao;
+    }
+
+    public void setSituacao(String situacao) {
+        this.situacao = situacao;
     }
 }

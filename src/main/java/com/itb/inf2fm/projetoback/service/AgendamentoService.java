@@ -7,6 +7,10 @@ import com.itb.inf2fm.projetoback.model.Usuario;
 import com.itb.inf2fm.projetoback.repository.AgendamentoRepository;
 import com.itb.inf2fm.projetoback.repository.TecnicoRepository;
 import com.itb.inf2fm.projetoback.repository.UsuarioRepository;
+import com.itb.inf2fm.projetoback.repository.ServicoRepository;
+import com.itb.inf2fm.projetoback.repository.ClienteRepository;
+import com.itb.inf2fm.projetoback.model.Servico;
+import com.itb.inf2fm.projetoback.model.Cliente;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -26,6 +30,12 @@ public class AgendamentoService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+    
+    @Autowired
+    private ServicoRepository servicoRepository;
+    
+    @Autowired
+    private ClienteRepository clienteRepository;
 
     public List<Agendamento> findAll() {
         return agendamentoRepository.findAll();
@@ -37,18 +47,18 @@ public class AgendamentoService {
 
     public Agendamento save(AgendamentoRequest request) {
         if (request.getTecnicoId() == null) {
-            throw new IllegalArgumentException("ID do técnico é obrigatório");
+            throw new IllegalArgumentException("tecnicoId é obrigatório");
         }
         if (request.getUsuarioId() == null) {
-            throw new IllegalArgumentException("ID do usuário é obrigatório");
+            throw new IllegalArgumentException("usuarioId é obrigatório");
         }
 
         Agendamento agendamento = new Agendamento();
-        agendamento.setDataAgendamento(LocalDate.parse(request.getDataAgendamento().substring(0, 10)));
-        agendamento.setHoraAgendamento(request.getDataAgendamento());
+        agendamento.setDataAgendamento(LocalDate.parse(request.getDataAgendamento()));
+        agendamento.setHoraAgendamento(request.getHoraAgendamento());
         agendamento.setDescricao(request.getDescricao());
         agendamento.setUrgencia(request.getUrgencia());
-        agendamento.setSituacao(request.getStatus());
+        agendamento.setSituacao(request.getSituacao());
         agendamento.setPreco(request.getPreco());
 
         Tecnico tecnico = tecnicoRepository.findById(request.getTecnicoId())
@@ -58,26 +68,31 @@ public class AgendamentoService {
         Usuario usuario = usuarioRepository.findById(request.getUsuarioId())
                 .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
         agendamento.setUsuario(usuario);
+        
+        if (request.getServicoId() != null) {
+            Servico servico = servicoRepository.findById(request.getServicoId())
+                    .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado"));
+            agendamento.setServico(servico);
+        }
+        
+        if (request.getClienteId() != null) {
+            Cliente cliente = clienteRepository.findById(request.getClienteId())
+                    .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado"));
+            agendamento.setCliente(cliente);
+        }
 
         return agendamentoRepository.save(agendamento);
     }
 
     public Agendamento update(Long id, AgendamentoRequest request) {
-        if (request.getTecnicoId() == null) {
-            throw new IllegalArgumentException("ID do técnico é obrigatório");
-        }
-        if (request.getUsuarioId() == null) {
-            throw new IllegalArgumentException("ID do usuário é obrigatório");
-        }
-        
         if (agendamentoRepository.findById(id).isPresent()) {
             Agendamento agendamento = new Agendamento();
             agendamento.setId(id);
-            agendamento.setDataAgendamento(LocalDate.parse(request.getDataAgendamento().substring(0, 10)));
-            agendamento.setHoraAgendamento(request.getDataAgendamento());
+            agendamento.setDataAgendamento(LocalDate.parse(request.getDataAgendamento()));
+            agendamento.setHoraAgendamento(request.getHoraAgendamento());
             agendamento.setDescricao(request.getDescricao());
             agendamento.setUrgencia(request.getUrgencia());
-            agendamento.setSituacao(request.getStatus());
+            agendamento.setSituacao(request.getSituacao());
             agendamento.setPreco(request.getPreco());
 
             Tecnico tecnico = tecnicoRepository.findById(request.getTecnicoId())

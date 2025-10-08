@@ -30,6 +30,10 @@ public class Agendamento {
     private Servico servico;
 
     @ManyToOne
+    @JoinColumn(name = "cliente_id")
+    private Cliente cliente;
+
+    @ManyToOne
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
@@ -149,5 +153,13 @@ public class Agendamento {
 
     public void setValid(boolean valid) {
         isValid = valid;
+    }
+
+    public Cliente getCliente() {
+        return cliente;
+    }
+
+    public void setCliente(Cliente cliente) {
+        this.cliente = cliente;
     }
 }
