@@ -3,10 +3,10 @@ package com.itb.inf2fm.projetoback.service;
 import com.itb.inf2fm.projetoback.dto.AgendamentoRequest;
 import com.itb.inf2fm.projetoback.model.Agendamento;
 import com.itb.inf2fm.projetoback.model.Tecnico;
-import com.itb.inf2fm.projetoback.model.Cliente;
+import com.itb.inf2fm.projetoback.model.Usuario;
 import com.itb.inf2fm.projetoback.repository.AgendamentoRepository;
 import com.itb.inf2fm.projetoback.repository.TecnicoRepository;
-import com.itb.inf2fm.projetoback.repository.ClienteRepository;
+import com.itb.inf2fm.projetoback.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ public class AgendamentoService {
     private TecnicoRepository tecnicoRepository;
 
     @Autowired
-    private ClienteRepository clienteRepository;
+    private UsuarioRepository usuarioRepository;
 
     public List<Agendamento> findAll() {
         return agendamentoRepository.findAll();
@@ -36,6 +36,12 @@ public class AgendamentoService {
     }
 
     public Agendamento save(AgendamentoRequest request) {
+        if (request.getTecnicoId() == null) {
+            throw new IllegalArgumentException("ID do técnico é obrigatório");
+        }
+        if (request.getUsuarioId() == null) {
+            throw new IllegalArgumentException("ID do usuário é obrigatório");
+        }
 
         Agendamento agendamento = new Agendamento();
         agendamento.setDataAgendamento(LocalDate.parse(request.getDataAgendamento().substring(0, 10)));
@@ -49,14 +55,21 @@ public class AgendamentoService {
                 .orElseThrow(() -> new IllegalArgumentException("Técnico não encontrado"));
         agendamento.setTecnico(tecnico);
 
-        Cliente cliente = clienteRepository.findById(request.getClienteId())
-                .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado"));
-        agendamento.setCliente(cliente);
+        Usuario usuario = usuarioRepository.findById(request.getUsuarioId())
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+        agendamento.setUsuario(usuario);
 
         return agendamentoRepository.save(agendamento);
     }
 
     public Agendamento update(Long id, AgendamentoRequest request) {
+        if (request.getTecnicoId() == null) {
+            throw new IllegalArgumentException("ID do técnico é obrigatório");
+        }
+        if (request.getUsuarioId() == null) {
+            throw new IllegalArgumentException("ID do usuário é obrigatório");
+        }
+        
         if (agendamentoRepository.findById(id).isPresent()) {
             Agendamento agendamento = new Agendamento();
             agendamento.setId(id);
@@ -71,9 +84,9 @@ public class AgendamentoService {
                     .orElseThrow(() -> new IllegalArgumentException("Técnico não encontrado"));
             agendamento.setTecnico(tecnico);
 
-            Cliente cliente = clienteRepository.findById(request.getClienteId())
-                    .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado"));
-            agendamento.setCliente(cliente);
+            Usuario usuario = usuarioRepository.findById(request.getUsuarioId())
+                    .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+            agendamento.setUsuario(usuario);
 
             return agendamentoRepository.save(agendamento);
         }
@@ -84,8 +97,8 @@ public class AgendamentoService {
         agendamentoRepository.deleteById(id);
     }
 
-    public List<Agendamento> findByClienteId(Long clienteId) {
-        return agendamentoRepository.findByClienteId(clienteId);
+    public List<Agendamento> findByUsuarioId(Long usuarioId) {
+        return agendamentoRepository.findByUsuarioId(usuarioId);
     }
 
     public List<Agendamento> findByTecnicoId(Long tecnicoId) {

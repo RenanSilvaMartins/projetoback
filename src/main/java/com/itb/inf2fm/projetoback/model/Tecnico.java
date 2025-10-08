@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "Tecnico")
@@ -39,12 +40,20 @@ public class Tecnico {
     @Column(name = "especialidade", length = 100, nullable = false)
     private String especialidade;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
     @Column(name = "statusTecnico", length = 20, nullable = false)
     private String statusTecnico;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "TecnicoRegiao",
+            joinColumns = @JoinColumn(name = "tecnico_id"),
+            inverseJoinColumns = @JoinColumn(name = "regiao_id")
+    )
+    private List<Regiao> regioes;
 
     @Transient
     private String mensagemErro = "";
@@ -173,6 +182,14 @@ public class Tecnico {
 
     public void setValid(boolean valid) {
         isValid = valid;
+    }
+
+    public List<Regiao> getRegioes() {
+        return regioes;
+    }
+
+    public void setRegioes(List<Regiao> regioes) {
+        this.regioes = regioes;
     }
 
 }

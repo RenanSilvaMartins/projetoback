@@ -17,4 +17,6 @@ public interface RegiaoRepository extends JpaRepository<Regiao, Long> {
     List<Regiao> findByCidade(String cidade);
     
     boolean existsByNome(String nome);
+    
+    Optional<Regiao> findByNomeAndCidade(String nome, String cidade);
 }

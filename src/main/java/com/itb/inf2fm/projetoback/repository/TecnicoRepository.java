@@ -2,6 +2,7 @@ package com.itb.inf2fm.projetoback.repository;
 
 import com.itb.inf2fm.projetoback.model.Tecnico;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -19,4 +20,7 @@ public interface TecnicoRepository extends JpaRepository<Tecnico, Long>{
     boolean existsByCpfCnpj(String cpfCnpj);
     
     List<Tecnico> findByUsuarioNomeContainingIgnoreCase(String nome);
+    
+    @Query("SELECT DISTINCT t.especialidade FROM Tecnico t WHERE t.statusTecnico = 'ATIVO'")
+    List<String> findDistinctEspecialidades();
 }

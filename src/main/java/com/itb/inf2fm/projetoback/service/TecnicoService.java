@@ -8,6 +8,7 @@ import com.itb.inf2fm.projetoback.exceptions.NotFound;
 import com.itb.inf2fm.projetoback.model.Tecnico;
 import com.itb.inf2fm.projetoback.model.Usuario;
 import com.itb.inf2fm.projetoback.model.TecnicoRegiao;
+import com.itb.inf2fm.projetoback.model.Regiao;
 
 import com.itb.inf2fm.projetoback.repository.TecnicoRepository;
 import com.itb.inf2fm.projetoback.repository.UsuarioRepository;
@@ -73,7 +74,28 @@ public class TecnicoService {
             tecnico.setStatusTecnico(STATUS_ATIVO);
         }
         
-        return tecnicoRepository.save(tecnico);
+        // Salva o técnico normalmente
+        Tecnico tecnicoSalvo = tecnicoRepository.save(tecnico);
+        
+        // Usa a lista de regiões recebida do frontend (apenas para leitura)
+        List<Regiao> regioesRecebidas = tecnico.getRegioes();
+        
+        if (regioesRecebidas != null && !regioesRecebidas.isEmpty()) {
+            for (Regiao regiao : regioesRecebidas) {
+                Regiao existente = regiaoRepository.findByNomeAndCidade(regiao.getNome(), regiao.getCidade()).orElse(null);
+                if (existente == null) {
+                    existente = regiaoRepository.save(regiao);
+                }
+                TecnicoRegiao tecnicoRegiao = new TecnicoRegiao();
+                tecnicoRegiao.setTecnico(tecnicoSalvo);
+                tecnicoRegiao.setRegiao(existente);
+                tecnicoRegiao.setStatusTecnicoRegiao("ATIVO");
+                tecnicoRegiaoRepository.save(tecnicoRegiao);
+            }
+        }
+        
+        // Retorne o técnico já salvo
+        return tecnicoSalvo;
     }
 
     public Optional<Tecnico> findByCpfCnpj(String cpfCnpj) {
@@ -231,5 +253,9 @@ public class TecnicoService {
             return List.of();
         }
         return tecnicoRepository.findByUsuarioNomeContainingIgnoreCase(nome.trim());
+    }
+    
+    public List<String> getEspecialidades() {
+        return tecnicoRepository.findDistinctEspecialidades();
     }
 }

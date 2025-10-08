@@ -125,6 +125,11 @@ public class TecnicoController {
             List<Tecnico> tecnicos = tecnicoService.findByNome(nome);
             return ResponseEntity.ok(tecnicos);
         }
+        
+        @GetMapping("/especialidades")
+        public List<String> getEspecialidades() {
+            return tecnicoService.getEspecialidades();
+        }
 
         @PutMapping("/{id}")
         public ResponseEntity<Object> updateTecnico( @PathVariable Long id, @RequestBody Tecnico tecnico){
