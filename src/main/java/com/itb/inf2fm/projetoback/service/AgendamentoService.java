@@ -63,6 +63,16 @@ public class AgendamentoService {
 
         Tecnico tecnico = tecnicoRepository.findById(request.getTecnicoId())
                 .orElseThrow(() -> new IllegalArgumentException("Técnico não encontrado"));
+        
+        // Validar se o técnico possui a especialidade necessária para o serviço
+        if (request.getServicoId() != null) {
+            Servico servico = servicoRepository.findById(request.getServicoId())
+                    .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado"));
+            if (!tecnico.getEspecialidade().equals(servico.getTipo())) {
+                throw new IllegalArgumentException("Técnico não possui a especialidade necessária para este serviço");
+            }
+        }
+        
         agendamento.setTecnico(tecnico);
 
         Usuario usuario = usuarioRepository.findById(request.getUsuarioId())
@@ -97,6 +107,16 @@ public class AgendamentoService {
 
             Tecnico tecnico = tecnicoRepository.findById(request.getTecnicoId())
                     .orElseThrow(() -> new IllegalArgumentException("Técnico não encontrado"));
+            
+            // Validar se o técnico possui a especialidade necessária para o serviço
+            if (request.getServicoId() != null) {
+                Servico servico = servicoRepository.findById(request.getServicoId())
+                        .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado"));
+                if (!tecnico.getEspecialidade().equals(servico.getTipo())) {
+                    throw new IllegalArgumentException("Técnico não possui a especialidade necessária para este serviço");
+                }
+            }
+            
             agendamento.setTecnico(tecnico);
 
             Usuario usuario = usuarioRepository.findById(request.getUsuarioId())
@@ -122,5 +142,11 @@ public class AgendamentoService {
 
     public List<Agendamento> findByDataAgendamento(LocalDate dataAgendamento) {
         return agendamentoRepository.findByDataAgendamento(dataAgendamento);
+    }
+    
+    public List<Tecnico> findTecnicosByServicoId(Long servicoId) {
+        Servico servico = servicoRepository.findById(servicoId)
+                .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado"));
+        return tecnicoRepository.findByEspecialidadeAndStatusTecnico(servico.getTipo(), "ATIVO");
     }
 }

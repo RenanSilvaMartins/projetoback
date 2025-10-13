@@ -23,4 +23,6 @@ public interface TecnicoRepository extends JpaRepository<Tecnico, Long>{
     
     @Query("SELECT DISTINCT t.especialidade FROM Tecnico t WHERE t.statusTecnico = 'ATIVO'")
     List<String> findDistinctEspecialidades();
+    
+    List<Tecnico> findByEspecialidadeAndStatusTecnico(String especialidade, String statusTecnico);
 }

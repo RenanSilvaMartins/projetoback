@@ -6,6 +6,7 @@
 package com.itb.inf2fm.projetoback.controller;
 
 import com.itb.inf2fm.projetoback.model.Tecnico;
+import com.itb.inf2fm.projetoback.model.TecnicoRegiao;
 import com.itb.inf2fm.projetoback.service.PasswordEncryptService;
 import com.itb.inf2fm.projetoback.service.TecnicoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -129,6 +130,15 @@ public class TecnicoController {
         @GetMapping("/especialidades")
         public List<String> getEspecialidades() {
             return tecnicoService.getEspecialidades();
+        }
+        
+        @GetMapping("/{id}/regioes")
+        public ResponseEntity<List<TecnicoRegiao>> getRegioesTecnico(@PathVariable Long id) {
+            try {
+                return ResponseEntity.ok(tecnicoService.getRegioesByTecnico(id));
+            } catch (Exception e) {
+                return ResponseEntity.notFound().build();
+            }
         }
 
         @PutMapping("/{id}")

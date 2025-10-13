@@ -91,7 +91,10 @@ public class AgendamentoController {
     // Endpoints para facilitar o cadastro de agendamentos
     
     @GetMapping("/tecnicos-disponiveis")
-    public List<Tecnico> getTecnicosDisponiveis() {
+    public List<Tecnico> getTecnicosDisponiveis(@RequestParam(required = false) Long servicoId) {
+        if (servicoId != null) {
+            return agendamentoService.findTecnicosByServicoId(servicoId);
+        }
         return tecnicoRepository.findByStatusTecnico("ATIVO");
     }
     
@@ -108,5 +111,15 @@ public class AgendamentoController {
     @GetMapping("/clientes-disponiveis")
     public List<Cliente> getClientesDisponiveis() {
         return clienteRepository.findAll();
+    }
+    
+    @GetMapping("/tecnicos-por-servico/{servicoId}")
+    public ResponseEntity<List<Tecnico>> getTecnicosPorServico(@PathVariable Long servicoId) {
+        try {
+            List<Tecnico> tecnicos = agendamentoService.findTecnicosByServicoId(servicoId);
+            return ResponseEntity.ok(tecnicos);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
