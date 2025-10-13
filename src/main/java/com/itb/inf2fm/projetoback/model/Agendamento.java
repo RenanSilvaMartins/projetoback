@@ -162,4 +162,8 @@ public class Agendamento {
     public void setCliente(Cliente cliente) {
         this.cliente = cliente;
     }
+
+    public String getServicoTipo() {
+        return servico != null ? servico.getTipo() : null;
+    }
 }

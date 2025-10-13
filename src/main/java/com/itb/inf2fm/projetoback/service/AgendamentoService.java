@@ -64,14 +64,7 @@ public class AgendamentoService {
         Tecnico tecnico = tecnicoRepository.findById(request.getTecnicoId())
                 .orElseThrow(() -> new IllegalArgumentException("Técnico não encontrado"));
         
-        // Validar se o técnico possui a especialidade necessária para o serviço
-        if (request.getServicoId() != null) {
-            Servico servico = servicoRepository.findById(request.getServicoId())
-                    .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado"));
-            if (!tecnico.getEspecialidade().equals(servico.getTipo())) {
-                throw new IllegalArgumentException("Técnico não possui a especialidade necessária para este serviço");
-            }
-        }
+
         
         agendamento.setTecnico(tecnico);
 
@@ -108,20 +101,25 @@ public class AgendamentoService {
             Tecnico tecnico = tecnicoRepository.findById(request.getTecnicoId())
                     .orElseThrow(() -> new IllegalArgumentException("Técnico não encontrado"));
             
-            // Validar se o técnico possui a especialidade necessária para o serviço
-            if (request.getServicoId() != null) {
-                Servico servico = servicoRepository.findById(request.getServicoId())
-                        .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado"));
-                if (!tecnico.getEspecialidade().equals(servico.getTipo())) {
-                    throw new IllegalArgumentException("Técnico não possui a especialidade necessária para este serviço");
-                }
-            }
+
             
             agendamento.setTecnico(tecnico);
 
             Usuario usuario = usuarioRepository.findById(request.getUsuarioId())
                     .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
             agendamento.setUsuario(usuario);
+            
+            if (request.getServicoId() != null) {
+                Servico servico = servicoRepository.findById(request.getServicoId())
+                        .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado"));
+                agendamento.setServico(servico);
+            }
+            
+            if (request.getClienteId() != null) {
+                Cliente cliente = clienteRepository.findById(request.getClienteId())
+                        .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado"));
+                agendamento.setCliente(cliente);
+            }
 
             return agendamentoRepository.save(agendamento);
         }

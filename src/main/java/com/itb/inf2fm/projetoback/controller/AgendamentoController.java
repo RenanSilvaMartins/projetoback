@@ -1,6 +1,7 @@
 package com.itb.inf2fm.projetoback.controller;
 
 import com.itb.inf2fm.projetoback.dto.AgendamentoRequest;
+import com.itb.inf2fm.projetoback.dto.AgendamentoResponse;
 import com.itb.inf2fm.projetoback.model.Agendamento;
 import com.itb.inf2fm.projetoback.service.AgendamentoService;
 import com.itb.inf2fm.projetoback.repository.TecnicoRepository;
@@ -40,28 +41,32 @@ public class AgendamentoController {
     private ClienteRepository clienteRepository;
 
     @GetMapping
-    public List<Agendamento> findAll() {
-        return agendamentoService.findAll();
+    public List<AgendamentoResponse> findAll() {
+        return agendamentoService.findAll().stream()
+                .map(AgendamentoResponse::new)
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Agendamento> findById(@PathVariable Long id) {
+    public ResponseEntity<AgendamentoResponse> findById(@PathVariable Long id) {
         return agendamentoService.findById(id)
-                .map(ResponseEntity::ok)
+                .map(agendamento -> ResponseEntity.ok(new AgendamentoResponse(agendamento)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Agendamento> create(@RequestBody AgendamentoRequest request) {
-        return ResponseEntity.ok(agendamentoService.save(request));
+    public ResponseEntity<AgendamentoResponse> create(@RequestBody AgendamentoRequest request) {
+        Agendamento agendamento = agendamentoService.save(request);
+        return ResponseEntity.ok(new AgendamentoResponse(agendamento));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Agendamento> update(@PathVariable Long id, @RequestBody AgendamentoRequest request) {
+    public ResponseEntity<AgendamentoResponse> update(@PathVariable Long id, @RequestBody AgendamentoRequest request) {
         if (!agendamentoService.findById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(agendamentoService.update(id, request));
+        Agendamento agendamento = agendamentoService.update(id, request);
+        return ResponseEntity.ok(new AgendamentoResponse(agendamento));
     }
 
     @DeleteMapping("/{id}")
@@ -74,18 +79,24 @@ public class AgendamentoController {
     }
 
     @GetMapping("/usuario/{usuarioId}")
-    public List<Agendamento> findByUsuarioId(@PathVariable Long usuarioId) {
-        return agendamentoService.findByUsuarioId(usuarioId);
+    public List<AgendamentoResponse> findByUsuarioId(@PathVariable Long usuarioId) {
+        return agendamentoService.findByUsuarioId(usuarioId).stream()
+                .map(AgendamentoResponse::new)
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @GetMapping("/tecnico/{tecnicoId}")
-    public List<Agendamento> findByTecnicoId(@PathVariable Long tecnicoId) {
-        return agendamentoService.findByTecnicoId(tecnicoId);
+    public List<AgendamentoResponse> findByTecnicoId(@PathVariable Long tecnicoId) {
+        return agendamentoService.findByTecnicoId(tecnicoId).stream()
+                .map(AgendamentoResponse::new)
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @GetMapping("/data/{dataAgendamento}")
-    public List<Agendamento> findByDataAgendamento(@PathVariable LocalDate dataAgendamento) {
-        return agendamentoService.findByDataAgendamento(dataAgendamento);
+    public List<AgendamentoResponse> findByDataAgendamento(@PathVariable LocalDate dataAgendamento) {
+        return agendamentoService.findByDataAgendamento(dataAgendamento).stream()
+                .map(AgendamentoResponse::new)
+                .collect(java.util.stream.Collectors.toList());
     }
     
     // Endpoints para facilitar o cadastro de agendamentos
