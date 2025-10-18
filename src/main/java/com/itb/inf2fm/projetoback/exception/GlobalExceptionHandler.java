@@ -6,6 +6,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -85,19 +86,40 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleDataIntegrityViolation(
             DataIntegrityViolationException ex, HttpServletRequest request) {
         
-        String message = "Erro de integridade dos dados";
-        if (ex.getMessage().contains("Duplicate entry")) {
-            message = "Dados duplicados: registro já existe";
-        } else if (ex.getMessage().contains("foreign key")) {
-            message = "Violação de chave estrangeira: registro referenciado";
+        String message;
+        String detail;
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        
+        String errorMessage = ex.getMessage() != null ? ex.getMessage().toLowerCase() : "";
+        
+        if (errorMessage.contains("duplicate") || errorMessage.contains("unique")) {
+            message = "Dados duplicados";
+            if (errorMessage.contains("cpf")) {
+                detail = "CPF já está cadastrado no sistema";
+            } else if (errorMessage.contains("email")) {
+                detail = "Email já está cadastrado no sistema";
+            } else {
+                detail = "Registro já existe no sistema";
+            }
+            status = HttpStatus.CONFLICT;
+        } else if (errorMessage.contains("foreign key") || errorMessage.contains("constraint")) {
+            message = "Violação de integridade";
+            detail = "Não é possível realizar a operação: existem registros dependentes";
+            status = HttpStatus.UNPROCESSABLE_ENTITY;
+        } else if (errorMessage.contains("not null")) {
+            message = "Campo obrigatório";
+            detail = "Um ou mais campos obrigatórios não foram preenchidos";
+        } else {
+            message = "Erro de integridade dos dados";
+            detail = "Verifique os dados e tente novamente";
         }
 
-        ApiResponse<Object> response = ApiResponse.error(message, "Verifique os dados e tente novamente");
+        ApiResponse<Object> response = ApiResponse.error(message, detail);
         response.setPath(request.getRequestURI());
 
         logger.warn("Erro de integridade na rota {}: {}", request.getRequestURI(), ex.getMessage());
         
-        return ResponseEntity.badRequest().body(response);
+        return ResponseEntity.status(status).body(response);
     }
 
     /**
@@ -170,6 +192,120 @@ public class GlobalExceptionHandler {
         logger.warn("Erro de regra de negócio na rota {}: {}", request.getRequestURI(), ex.getMessage());
         
         return ResponseEntity.badRequest().body(response);
+    }
+
+    /**
+     * Trata exceções de validação customizadas
+     */
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleValidationException(
+            ValidationException ex, HttpServletRequest request) {
+        
+        ApiResponse<Object> response = ApiResponse.error(
+            "Dados inválidos",
+            ex.getMessage()
+        );
+        
+        if (ex.getFieldErrors() != null) {
+            response.setData(ex.getFieldErrors());
+        }
+        
+        response.setPath(request.getRequestURI());
+        logger.warn("Erro de validação na rota {}: {}", request.getRequestURI(), ex.getMessage());
+        
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    /**
+     * Trata exceções de recursos duplicados
+     */
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ApiResponse<Object>> handleDuplicateResourceException(
+            DuplicateResourceException ex, HttpServletRequest request) {
+        
+        ApiResponse<Object> response = ApiResponse.error(
+            "Recurso duplicado",
+            ex.getMessage()
+        );
+        
+        Map<String, Object> details = new HashMap<>();
+        if (ex.getField() != null) {
+            details.put("field", ex.getField());
+            details.put("value", ex.getValue());
+        }
+        response.setData(details);
+        response.setPath(request.getRequestURI());
+
+        logger.warn("Recurso duplicado na rota {}: {}", request.getRequestURI(), ex.getMessage());
+        
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    /**
+     * Trata exceções de operações inválidas
+     */
+    @ExceptionHandler(InvalidOperationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleInvalidOperationException(
+            InvalidOperationException ex, HttpServletRequest request) {
+        
+        ApiResponse<Object> response = ApiResponse.error(
+            "Operação inválida",
+            ex.getMessage()
+        );
+        
+        Map<String, String> details = new HashMap<>();
+        if (ex.getOperation() != null) {
+            details.put("operation", ex.getOperation());
+            details.put("reason", ex.getReason());
+        }
+        response.setData(details);
+        response.setPath(request.getRequestURI());
+
+        logger.warn("Operação inválida na rota {}: {}", request.getRequestURI(), ex.getMessage());
+        
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
+    }
+
+    /**
+     * Trata exceções de banco de dados
+     */
+    @ExceptionHandler(DatabaseException.class)
+    public ResponseEntity<ApiResponse<Object>> handleDatabaseException(
+            DatabaseException ex, HttpServletRequest request) {
+        
+        ApiResponse<Object> response = ApiResponse.error(
+            "Erro de banco de dados",
+            ex.getMessage()
+        );
+        
+        if (ex.getOperation() != null) {
+            Map<String, String> details = new HashMap<>();
+            details.put("operation", ex.getOperation());
+            response.setData(details);
+        }
+        
+        response.setPath(request.getRequestURI());
+        logger.error("Erro de banco na rota {}: {}", request.getRequestURI(), ex.getMessage());
+        
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    /**
+     * Trata exceções de resultado vazio (delete de ID inexistente)
+     */
+    @ExceptionHandler(EmptyResultDataAccessException.class)
+    public ResponseEntity<ApiResponse<Object>> handleEmptyResultDataAccessException(
+            EmptyResultDataAccessException ex, HttpServletRequest request) {
+        
+        ApiResponse<Object> response = ApiResponse.error(
+            "Recurso não encontrado",
+            "O recurso que você está tentando deletar não existe"
+        );
+        response.setPath(request.getRequestURI());
+
+        logger.info("Tentativa de deletar recurso inexistente na rota {}", request.getRequestURI());
+        
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     /**

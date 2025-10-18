@@ -14,14 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -76,40 +69,23 @@ public class ClienteController {
      * });
      */
     @PostMapping
-    public ResponseEntity<Object> saveCliente(@RequestBody Cliente cliente){
-        try {
-            if (cliente == null) {
-                return ResponseEntity.badRequest().body("Dados do cliente são obrigatórios");
-            }
-            
-            Cliente clienteSalvo = clienteService.save(cliente);
-            
-            if (clienteSalvo.isValid()) {
-                return ResponseEntity.status(HttpStatus.CREATED).body(clienteSalvo);
-            } else {
-                return ResponseEntity.badRequest().body(clienteSalvo);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro interno do servidor");
-        }
+    public ResponseEntity<Cliente> saveCliente(@RequestBody Cliente cliente){
+        Cliente clienteSalvo = clienteService.save(cliente);
+        return ResponseEntity.status(HttpStatus.CREATED).body(clienteSalvo);
     }
 
     /**
      * READ - Buscar cliente por ID
-     * GET /cliente/cliente/{id}
+     * GET /cliente/{id}
      * 
-     * FLUTTER: final response = await http.get(Uri.parse('$baseUrl/cliente/cliente/$id'));
-     * REACT: const response = await axios.get(`/cliente/cliente/${id}`);
+     * FLUTTER: final response = await http.get(Uri.parse('$baseUrl/cliente/$id'));
+     * REACT: const response = await axios.get(`/cliente/${id}`);
      */
-    @GetMapping("/cliente/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Cliente> getClienteById(@PathVariable Long id) {
         Optional<Cliente> clienteOpt = clienteService.findById(id);
-        if (clienteOpt.isPresent()) {
-            return ResponseEntity.ok(clienteOpt.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return clienteOpt.map(ResponseEntity::ok)
+                         .orElseThrow(() -> new com.itb.inf2fm.projetoback.exception.ResourceNotFoundException("Cliente", "id", id));
     }
 
     /**
@@ -153,17 +129,10 @@ public class ClienteController {
      * REACT: const response = await axios.put(`/cliente/${id}`, clienteData);
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Object> updateCliente(@PathVariable Long id, @RequestBody Cliente cliente){
-        ResponseEntity<Object> validationError = validateId(id);
-        if (validationError != null) {
-            return validationError;
-        }
-        if (cliente == null) {
-            return ResponseEntity.badRequest().body("Dados do cliente são obrigatórios");
-        }
+    public ResponseEntity<Cliente> updateCliente(@PathVariable Long id, @RequestBody Cliente cliente){
         cliente.setId(id);
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(clienteService.update(cliente));
+        Cliente clienteAtualizado = clienteService.update(cliente);
+        return ResponseEntity.ok(clienteAtualizado);
     }
 
     /**
@@ -173,26 +142,22 @@ public class ClienteController {
      * FLUTTER: final response = await http.delete(Uri.parse('$baseUrl/cliente/$id'));
      * REACT: const response = await axios.delete(`/cliente/${id}`);
      * 
-     * Retorna: 200 (sucesso) ou 404 (não encontrado)
+     * Retorna: 204 (sucesso) ou erro específico
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteCliente(@PathVariable Long id){
-        ResponseEntity<Object> validationError = validateId(id);
-        if (validationError != null) {
-            return validationError;
-        }
-        boolean deleted = clienteService.delete(id);
-        if (deleted) {
-            return ResponseEntity.ok("Cliente deletado com sucesso");
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<Void> deleteCliente(@PathVariable Long id){
+        clienteService.delete(id);
+        return ResponseEntity.noContent().build();
     }
     
-    private ResponseEntity<Object> validateId(Long id) {
-        if (id == null || id <= 0) {
-            return ResponseEntity.badRequest().body("ID inválido");
-        }
-        return null;
+    /**
+     * PATCH - Inativar cliente
+     * PATCH /cliente/{id}/inativar
+     */
+    @Operation(summary = "Inativar cliente", description = "Inativa um cliente sem removê-lo do sistema")
+    @PatchMapping("/{id}/inativar")
+    public ResponseEntity<Cliente> inativarCliente(@PathVariable Long id) {
+        Cliente clienteInativado = clienteService.inativar(id);
+        return ResponseEntity.ok(clienteInativado);
     }
 }

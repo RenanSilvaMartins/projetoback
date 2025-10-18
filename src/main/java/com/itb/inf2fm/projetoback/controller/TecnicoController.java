@@ -160,15 +160,8 @@ public class TecnicoController {
         }
 
         @DeleteMapping("/{id}")
-        public ResponseEntity<Object> deleteTecnico(@PathVariable Long id){
-            if (id <= 0) {
-                return ResponseEntity.badRequest().body("ID inválido");
-            }
-            boolean deleted = tecnicoService.delete(id);
-            if (deleted) {
-                return ResponseEntity.ok("Técnico deletado com sucesso");
-            } else {
-                return ResponseEntity.notFound().build();
-            }
+        public ResponseEntity<Void> deleteTecnico(@PathVariable Long id){
+            tecnicoService.delete(id);
+            return ResponseEntity.noContent().build();
         }
 }

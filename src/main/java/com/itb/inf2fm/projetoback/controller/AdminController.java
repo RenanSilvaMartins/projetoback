@@ -155,11 +155,8 @@ public class AdminController {
                 return ResponseEntity.badRequest().body("ID inválido");
             }
             
-            boolean deleted = tecnicoService.delete(id);
-            if (!deleted) {
-                return ResponseEntity.notFound().build();
-            }
-            return new ResponseEntity<>("Técnico removido com sucesso", HttpStatus.NO_CONTENT);
+            tecnicoService.delete(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (RuntimeException e) {
             return new ResponseEntity<>("Erro interno do servidor: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -180,11 +177,8 @@ public class AdminController {
                 return ResponseEntity.badRequest().body("ID inválido");
             }
             
-            boolean inativado = tecnicoService.inativar(id);
-            if (!inativado) {
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.ok("Técnico inativado com sucesso");
+            Tecnico tecnicoInativado = tecnicoService.inativar(id);
+            return ResponseEntity.ok(tecnicoInativado);
         } catch (RuntimeException e) {
             return new ResponseEntity<>("Erro interno do servidor: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }

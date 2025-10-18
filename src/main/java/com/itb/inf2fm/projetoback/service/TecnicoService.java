@@ -4,24 +4,27 @@
 // Flutter/ReactJS consomem endpoints que dependem desta lógica
 package com.itb.inf2fm.projetoback.service;
 
-import com.itb.inf2fm.projetoback.exceptions.NotFound;
+import com.itb.inf2fm.projetoback.exception.*;
 import com.itb.inf2fm.projetoback.model.Tecnico;
 import com.itb.inf2fm.projetoback.model.Usuario;
 import com.itb.inf2fm.projetoback.model.TecnicoRegiao;
 import com.itb.inf2fm.projetoback.model.Regiao;
-
 import com.itb.inf2fm.projetoback.repository.TecnicoRepository;
 import com.itb.inf2fm.projetoback.repository.UsuarioRepository;
 import com.itb.inf2fm.projetoback.repository.TecnicoRegiaoRepository;
 import com.itb.inf2fm.projetoback.repository.RegiaoRepository;
+import com.itb.inf2fm.projetoback.util.CrudValidationUtils;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -127,7 +130,7 @@ public class TecnicoService {
                 tecnico.setId(usuarioExistente.getId());
             } else {
                 logger.error("Usuário não encontrado com ID: {}", usuarioId);
-                throw new NotFound("Usuário não encontrado com ID: " + usuarioId);
+                throw new ResourceNotFoundException("Usuário", "id", usuarioId);
             }
         }
         
@@ -154,59 +157,126 @@ public class TecnicoService {
 
     @Transactional
     public Tecnico update(Tecnico tecnico) {
-        if (tecnico == null || tecnico.getUsuario() == null) {
-            throw new IllegalArgumentException("Técnico e usuário são obrigatórios");
+        // Validações básicas
+        if (tecnico == null) {
+            throw new ValidationException("Técnico não pode ser nulo");
         }
         
-        Tecnico existingTecnico = tecnicoRepository.findById(tecnico.getId())
-                .orElseThrow(() -> new NotFound("Técnico não encontrado"));
+        // Valida ID
+        CrudValidationUtils.validateId(tecnico.getId(), "Técnico");
         
-        // Atualiza dados do usuário
-        existingTecnico.getUsuario().setNome(tecnico.getUsuario().getNome());
-        existingTecnico.getUsuario().setEmail(tecnico.getUsuario().getEmail());
+        // Busca técnico existente
+        Tecnico existingTecnico = CrudValidationUtils.validateResourceExists(
+            () -> tecnicoRepository.findById(tecnico.getId()).orElse(null),
+            "Técnico", tecnico.getId()
+        );
         
-        // Só atualiza a senha se uma nova foi fornecida
-        if (tecnico.getUsuario().getSenha() != null && !tecnico.getUsuario().getSenha().isEmpty()) {
-            existingTecnico.getUsuario().setSenha(BCrypt.hashpw(tecnico.getUsuario().getSenha(), BCrypt.gensalt()));
+        // Validações de campos que serão atualizados
+        if (tecnico.getCpfCnpj() != null) {
+            CrudValidationUtils.validateCpf(tecnico.getCpfCnpj());
+            // Verifica se CPF/CNPJ não está em uso por outro técnico
+            Optional<Tecnico> tecnicoComCpf = findByCpfCnpj(tecnico.getCpfCnpj());
+            if (tecnicoComCpf.isPresent() && !tecnicoComCpf.get().getId().equals(tecnico.getId())) {
+                throw new DuplicateResourceException("CPF/CNPJ", tecnico.getCpfCnpj());
+            }
         }
         
-        // Atualiza dados específicos do técnico
-        existingTecnico.setCpfCnpj(tecnico.getCpfCnpj());
-        existingTecnico.setDataNascimento(tecnico.getDataNascimento());
-        existingTecnico.setTelefone(tecnico.getTelefone());
-        existingTecnico.setCep(tecnico.getCep());
-        existingTecnico.setNumeroResidencia(tecnico.getNumeroResidencia());
-        existingTecnico.setComplemento(tecnico.getComplemento());
-        existingTecnico.setDescricao(tecnico.getDescricao());
-        existingTecnico.setStatusTecnico(tecnico.getStatusTecnico());
+        if (tecnico.getUsuario() != null && tecnico.getUsuario().getEmail() != null) {
+            CrudValidationUtils.validateEmail(tecnico.getUsuario().getEmail());
+            // Verifica se email não está em uso por outro usuário
+            Optional<Tecnico> tecnicoComEmail = findByEmail(tecnico.getUsuario().getEmail());
+            if (tecnicoComEmail.isPresent() && !tecnicoComEmail.get().getId().equals(tecnico.getId())) {
+                throw new DuplicateResourceException("Email", tecnico.getUsuario().getEmail());
+            }
+        }
         
-        return tecnicoRepository.save(existingTecnico);
+        try {
+            // Atualiza dados do usuário apenas se não forem nulos
+            if (tecnico.getUsuario() != null) {
+                if (tecnico.getUsuario().getNome() != null) {
+                    existingTecnico.getUsuario().setNome(tecnico.getUsuario().getNome());
+                }
+                if (tecnico.getUsuario().getEmail() != null) {
+                    existingTecnico.getUsuario().setEmail(tecnico.getUsuario().getEmail());
+                }
+                
+                // Só atualiza a senha se uma nova foi fornecida
+                if (tecnico.getUsuario().getSenha() != null && !tecnico.getUsuario().getSenha().isEmpty()) {
+                    existingTecnico.getUsuario().setSenha(BCrypt.hashpw(tecnico.getUsuario().getSenha(), BCrypt.gensalt()));
+                }
+            }
+            
+            // Atualiza dados específicos do técnico apenas se não forem nulos
+            if (tecnico.getCpfCnpj() != null) {
+                existingTecnico.setCpfCnpj(tecnico.getCpfCnpj());
+            }
+            if (tecnico.getDataNascimento() != null) {
+                existingTecnico.setDataNascimento(tecnico.getDataNascimento());
+            }
+            if (tecnico.getTelefone() != null) {
+                existingTecnico.setTelefone(tecnico.getTelefone());
+            }
+            if (tecnico.getCep() != null) {
+                existingTecnico.setCep(tecnico.getCep());
+            }
+            if (tecnico.getNumeroResidencia() != null) {
+                existingTecnico.setNumeroResidencia(tecnico.getNumeroResidencia());
+            }
+            if (tecnico.getComplemento() != null) {
+                existingTecnico.setComplemento(tecnico.getComplemento());
+            }
+            if (tecnico.getDescricao() != null) {
+                existingTecnico.setDescricao(tecnico.getDescricao());
+            }
+            if (tecnico.getStatusTecnico() != null) {
+                existingTecnico.setStatusTecnico(tecnico.getStatusTecnico());
+            }
+            
+            return tecnicoRepository.save(existingTecnico);
+        } catch (DataAccessException e) {
+            throw new DatabaseException("atualizar técnico", "Erro ao atualizar técnico no banco de dados");
+        }
     }
 
     @Transactional
-    public boolean delete(Long id) {
-        Optional<Tecnico> tecnicoOptional = tecnicoRepository.findById(id);
-        if (tecnicoOptional.isPresent()) {
+    public void delete(Long id) {
+        // Valida ID
+        CrudValidationUtils.validateId(id, "Técnico");
+        
+        // Verifica se técnico existe
+        CrudValidationUtils.validateResourceExists(
+            () -> tecnicoRepository.existsById(id) ? "exists" : null,
+            "Técnico", id
+        );
+        
+        try {
             // Remove relacionamentos primeiro
             tecnicoRegiaoRepository.deleteByTecnicoId(id);
             // Remove o técnico
             tecnicoRepository.deleteById(id);
-            return true;
+        } catch (DataAccessException e) {
+            throw new DatabaseException("deletar técnico", "Erro ao deletar técnico do banco de dados");
         }
-        return false;
     }
 
     @Transactional
-    public boolean inativar(Long id) {
-        Optional<Tecnico> tecnicoOptional = tecnicoRepository.findById(id);
-        if (tecnicoOptional.isPresent()) {
-            Tecnico tecnico = tecnicoOptional.get();
+    public Tecnico inativar(Long id) {
+        // Valida ID
+        CrudValidationUtils.validateId(id, "Técnico");
+        
+        // Busca técnico existente
+        Tecnico tecnico = CrudValidationUtils.validateResourceExists(
+            () -> tecnicoRepository.findById(id).orElse(null),
+            "Técnico", id
+        );
+        
+        try {
             tecnico.setStatusTecnico(STATUS_INATIVO);
             tecnico.getUsuario().setStatusUsuario(STATUS_INATIVO);
-            tecnicoRepository.save(tecnico);
-            return true;
+            return tecnicoRepository.save(tecnico);
+        } catch (DataAccessException e) {
+            throw new DatabaseException("inativar técnico", "Erro ao inativar técnico no banco de dados");
         }
-        return false;
     }
 
     public boolean existsByCpfCnpj(String cpfCnpj) {
@@ -221,10 +291,10 @@ public class TecnicoService {
     @Transactional
     public void adicionarRegiao(Long tecnicoId, Long regiaoId) {
         Tecnico tecnico = tecnicoRepository.findById(tecnicoId)
-                .orElseThrow(() -> new NotFound("Técnico não encontrado com ID: " + tecnicoId));
+                .orElseThrow(() -> new ResourceNotFoundException("Técnico", "id", tecnicoId));
         
         var regiao = regiaoRepository.findById(regiaoId)
-                .orElseThrow(() -> new NotFound("Região não encontrada com ID: " + regiaoId));
+                .orElseThrow(() -> new ResourceNotFoundException("Região", "id", regiaoId));
         
         TecnicoRegiao tecnicoRegiao = new TecnicoRegiao();
         tecnicoRegiao.setTecnico(tecnico);
@@ -236,14 +306,14 @@ public class TecnicoService {
     @Transactional
     public void removerRegiao(Long tecnicoId, Long regiaoId) {
         if (!tecnicoRepository.existsById(tecnicoId)) {
-            throw new NotFound("Técnico não encontrado com ID: " + tecnicoId);
+            throw new ResourceNotFoundException("Técnico", "id", tecnicoId);
         }
         tecnicoRegiaoRepository.deleteByTecnicoIdAndRegiaoId(tecnicoId, regiaoId);
     }
 
     public List<TecnicoRegiao> getRegioesByTecnico(Long tecnicoId) {
         if (!tecnicoRepository.existsById(tecnicoId)) {
-            throw new NotFound("Técnico não encontrado com ID: " + tecnicoId);
+            throw new ResourceNotFoundException("Técnico", "id", tecnicoId);
         }
         return tecnicoRegiaoRepository.findByTecnicoId(tecnicoId);
     }

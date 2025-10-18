@@ -4,16 +4,20 @@
 // Flutter/ReactJS consomem endpoints que dependem desta lógica
 package com.itb.inf2fm.projetoback.service;
 
-import com.itb.inf2fm.projetoback.exceptions.NotFound;
+import com.itb.inf2fm.projetoback.exception.*;
 import com.itb.inf2fm.projetoback.model.Cliente;
 import com.itb.inf2fm.projetoback.repository.ClienteRepository;
 import com.itb.inf2fm.projetoback.repository.UsuarioRepository;
+import com.itb.inf2fm.projetoback.util.CrudValidationUtils;
 import jakarta.transaction.Transactional;
+import org.springframework.dao.DataAccessException;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -64,43 +68,47 @@ public class ClienteService {
         return clienteRepository.findByUsuarioEmail(email);
     }
 
-    @SuppressWarnings("null")
     @Transactional
     public Cliente save(Cliente cliente) {
+        // Validações básicas
+        if (cliente == null) {
+            throw new ValidationException("Cliente não pode ser nulo");
+        }
+        
+        // Valida campos obrigatórios
+        Map<String, Object> requiredFields = new HashMap<>();
+        requiredFields.put("cpf", cliente.getCpf());
+        requiredFields.put("dataNascimento", cliente.getDataNascimento());
+        
+        if (cliente.getUsuario() != null) {
+            requiredFields.put("nome", cliente.getUsuario().getNome());
+            requiredFields.put("email", cliente.getUsuario().getEmail());
+            requiredFields.put("senha", cliente.getUsuario().getSenha());
+        }
+        
+        CrudValidationUtils.validateRequiredFields(requiredFields);
+        
+        // Validações específicas
+        CrudValidationUtils.validateCpf(cliente.getCpf());
+        
+        if (cliente.getUsuario() != null) {
+            CrudValidationUtils.validateEmail(cliente.getUsuario().getEmail());
+        }
+        
+        // Verifica duplicatas
+        CrudValidationUtils.validateResourceNotExists(
+            () -> existsByCpf(cliente.getCpf()),
+            "CPF", cliente.getCpf()
+        );
+        
+        if (cliente.getUsuario() != null && cliente.getUsuario().getEmail() != null) {
+            CrudValidationUtils.validateResourceNotExists(
+                () -> existsByEmail(cliente.getUsuario().getEmail()),
+                "Email", cliente.getUsuario().getEmail()
+            );
+        }
+        
         try {
-            // Valida dados básicos
-            if (cliente == null) {
-                Cliente errorCliente = new Cliente();
-                errorCliente.setMensagemErro("Cliente não pode ser nulo");
-                errorCliente.setValid(false);
-                return errorCliente;
-            }
-            
-            // Valida campos obrigatórios do cliente
-            if (cliente.getNome() == null || cliente.getNome().trim().isEmpty()) {
-                cliente.setMensagemErro("Nome é obrigatório");
-                cliente.setValid(false);
-                return cliente;
-            }
-            
-            if (cliente.getEmail() == null || cliente.getEmail().trim().isEmpty()) {
-                cliente.setMensagemErro("Email é obrigatório");
-                cliente.setValid(false);
-                return cliente;
-            }
-            
-            if (cliente.getCpf() == null || cliente.getCpf().trim().isEmpty()) {
-                cliente.setMensagemErro("CPF é obrigatório");
-                cliente.setValid(false);
-                return cliente;
-            }
-            
-            if (cliente.getDataNascimento() == null) {
-                cliente.setMensagemErro("Data de nascimento é obrigatória");
-                cliente.setValid(false);
-                return cliente;
-            }
-            
             // Se tem usuário, usa o método completo
             if (cliente.getUsuario() != null) {
                 return salvarCliente(cliente);
@@ -110,21 +118,10 @@ public class ClienteService {
                     cliente.setStatusCliente("ATIVO");
                 }
                 
-                // Salva diretamente
                 return clienteRepository.save(cliente);
             }
-        } catch (IllegalArgumentException e) {
-            cliente.setMensagemErro("Dados inválidos: " + e.getMessage());
-            cliente.setValid(false);
-            return cliente;
-        } catch (org.springframework.dao.DataIntegrityViolationException e) {
-            cliente.setMensagemErro("CPF ou email já está em uso");
-            cliente.setValid(false);
-            return cliente;
-        } catch (RuntimeException e) {
-            cliente.setMensagemErro("Erro interno do sistema");
-            cliente.setValid(false);
-            return cliente;
+        } catch (DataAccessException e) {
+            throw new DatabaseException("salvar cliente", "Erro ao salvar cliente no banco de dados");
         }
     }
 
@@ -142,77 +139,108 @@ public class ClienteService {
 
     @Transactional
     public Cliente update(Cliente cliente) {
-        Cliente existingCliente = clienteRepository.findById(cliente.getId())
-                .orElseThrow(() -> new NotFound("Cliente não encontrado"));
+        // Valida ID
+        CrudValidationUtils.validateId(cliente.getId(), "Cliente");
         
-        // Atualiza dados do usuário
-        if (cliente.getUsuario() != null) {
-            if (cliente.getUsuario().getNome() != null) {
-                existingCliente.getUsuario().setNome(cliente.getUsuario().getNome());
+        // Busca cliente existente
+        Cliente existingCliente = CrudValidationUtils.validateResourceExists(
+            () -> clienteRepository.findById(cliente.getId()).orElse(null),
+            "Cliente", cliente.getId()
+        );
+        
+        // Validações de campos que serão atualizados
+        if (cliente.getCpf() != null) {
+            CrudValidationUtils.validateCpf(cliente.getCpf());
+            // Verifica se CPF não está em uso por outro cliente
+            Optional<Cliente> clienteComCpf = findByCpf(cliente.getCpf());
+            if (clienteComCpf.isPresent() && !clienteComCpf.get().getId().equals(cliente.getId())) {
+                throw new DuplicateResourceException("CPF", cliente.getCpf());
             }
-            if (cliente.getUsuario().getEmail() != null) {
-                existingCliente.getUsuario().setEmail(cliente.getUsuario().getEmail());
+        }
+        
+        if (cliente.getUsuario() != null && cliente.getUsuario().getEmail() != null) {
+            CrudValidationUtils.validateEmail(cliente.getUsuario().getEmail());
+            // Verifica se email não está em uso por outro usuário
+            Optional<Cliente> clienteComEmail = findByEmail(cliente.getUsuario().getEmail());
+            if (clienteComEmail.isPresent() && !clienteComEmail.get().getId().equals(cliente.getId())) {
+                throw new DuplicateResourceException("Email", cliente.getUsuario().getEmail());
+            }
+        }
+        
+        try {
+            // Atualiza dados do usuário
+            if (cliente.getUsuario() != null) {
+                if (cliente.getUsuario().getNome() != null) {
+                    existingCliente.getUsuario().setNome(cliente.getUsuario().getNome());
+                }
+                if (cliente.getUsuario().getEmail() != null) {
+                    existingCliente.getUsuario().setEmail(cliente.getUsuario().getEmail());
+                }
+                
+                // Só atualiza a senha se uma nova foi fornecida
+                if (cliente.getUsuario().getSenha() != null && !cliente.getUsuario().getSenha().isEmpty()) {
+                    existingCliente.getUsuario().setSenha(BCrypt.hashpw(cliente.getUsuario().getSenha(), BCrypt.gensalt()));
+                }
             }
             
-            // Só atualiza a senha se uma nova foi fornecida
-            if (cliente.getUsuario().getSenha() != null && !cliente.getUsuario().getSenha().isEmpty()) {
-                existingCliente.getUsuario().setSenha(BCrypt.hashpw(cliente.getUsuario().getSenha(), BCrypt.gensalt()));
+            // Atualiza dados específicos do cliente apenas se não forem nulos
+            if (cliente.getCpf() != null) {
+                existingCliente.setCpf(cliente.getCpf());
             }
-        }
-        
-        // Atualiza dados específicos do cliente apenas se não forem nulos
-        if (cliente.getCpf() != null) {
-            existingCliente.setCpf(cliente.getCpf());
-        }
-        if (cliente.getDataNascimento() != null) {
-            existingCliente.setDataNascimento(cliente.getDataNascimento());
-        }
-        if (cliente.getStatusCliente() != null) {
-            existingCliente.setStatusCliente(cliente.getStatusCliente());
-        }
-        
-        return clienteRepository.save(existingCliente);
-    }
-
-    @Transactional
-    public boolean delete(Long id) {
-        if (id == null || id <= 0) {
-            return false;
-        }
-        try {
-            if (clienteRepository.existsById(id)) {
-                clienteRepository.deleteById(id);
-                return true;
+            if (cliente.getDataNascimento() != null) {
+                existingCliente.setDataNascimento(cliente.getDataNascimento());
             }
-            return false;
-        } catch (org.springframework.dao.DataAccessException e) {
-            return false;
-        } catch (RuntimeException e) {
-            return false;
+            if (cliente.getStatusCliente() != null) {
+                existingCliente.setStatusCliente(cliente.getStatusCliente());
+            }
+            
+            return clienteRepository.save(existingCliente);
+        } catch (DataAccessException e) {
+            throw new DatabaseException("atualizar cliente", "Erro ao atualizar cliente no banco de dados");
         }
     }
 
     @Transactional
-    public boolean inativar(Long id) {
-        if (id == null || id <= 0) {
-            return false;
-        }
+    public void delete(Long id) {
+        // Valida ID
+        CrudValidationUtils.validateId(id, "Cliente");
+        
+        // Verifica se cliente existe
+        CrudValidationUtils.validateResourceExists(
+            () -> clienteRepository.existsById(id) ? "exists" : null,
+            "Cliente", id
+        );
+        
         try {
-            Optional<Cliente> clienteOpt = clienteRepository.findById(id);
-            if (clienteOpt.isPresent()) {
-                Cliente cliente = clienteOpt.get();
-                cliente.setStatusCliente("INATIVO");
-                if (cliente.getUsuario() != null) {
-                    cliente.getUsuario().setStatusUsuario("INATIVO");
-                }
-                clienteRepository.save(cliente);
-                return true;
+            clienteRepository.deleteById(id);
+        } catch (DataAccessException e) {
+            if (e.getMessage() != null && e.getMessage().contains("foreign key")) {
+                throw new InvalidOperationException("deletar cliente", 
+                    "Cliente possui registros dependentes (agendamentos, etc.)");
             }
-            return false;
-        } catch (org.springframework.dao.DataAccessException e) {
-            return false;
-        } catch (RuntimeException e) {
-            return false;
+            throw new DatabaseException("deletar cliente", "Erro ao deletar cliente do banco de dados");
+        }
+    }
+
+    @Transactional
+    public Cliente inativar(Long id) {
+        // Valida ID
+        CrudValidationUtils.validateId(id, "Cliente");
+        
+        // Busca cliente existente
+        Cliente cliente = CrudValidationUtils.validateResourceExists(
+            () -> clienteRepository.findById(id).orElse(null),
+            "Cliente", id
+        );
+        
+        try {
+            cliente.setStatusCliente("INATIVO");
+            if (cliente.getUsuario() != null) {
+                cliente.getUsuario().setStatusUsuario("INATIVO");
+            }
+            return clienteRepository.save(cliente);
+        } catch (DataAccessException e) {
+            throw new DatabaseException("inativar cliente", "Erro ao inativar cliente no banco de dados");
         }
     }
 
