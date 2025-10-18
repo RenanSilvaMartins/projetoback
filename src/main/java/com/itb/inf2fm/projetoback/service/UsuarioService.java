@@ -4,16 +4,21 @@
 // Flutter/ReactJS consomem endpoints que dependem desta lógica
 package com.itb.inf2fm.projetoback.service;
 
+import com.itb.inf2fm.projetoback.exception.*;
 import com.itb.inf2fm.projetoback.model.Usuario;
 import com.itb.inf2fm.projetoback.repository.UsuarioRepository;
 import com.itb.inf2fm.projetoback.service.CacheService;
+import com.itb.inf2fm.projetoback.util.CrudValidationUtils;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -34,12 +39,28 @@ public class UsuarioService {
         this.cacheService = cacheService;
     }
 
+    @Transactional
     public Usuario save(Usuario usuario) {
         if (usuario == null) {
-            throw new IllegalArgumentException("Usuário não pode ser nulo");
+            throw new ValidationException("Usuário não pode ser nulo");
         }
         
-        validateUsuario(usuario);
+        // Validações de campos obrigatórios
+        Map<String, Object> requiredFields = new HashMap<>();
+        requiredFields.put("nome", usuario.getNome());
+        requiredFields.put("email", usuario.getEmail());
+        if (usuario.getId() == null) {
+            requiredFields.put("senha", usuario.getSenha());
+        }
+        
+        CrudValidationUtils.validateRequiredFields(requiredFields);
+        CrudValidationUtils.validateEmail(usuario.getEmail());
+        
+        // Verifica duplicatas
+        CrudValidationUtils.validateResourceNotExists(
+            () -> existsByEmail(usuario.getEmail()),
+            "Email", usuario.getEmail()
+        );
         
         try {
             // Criptografa senha se fornecida
@@ -66,15 +87,8 @@ public class UsuarioService {
             }
             
             return saved;
-        } catch (IllegalArgumentException e) {
-            logger.warn("Dados inválidos ao salvar usuário: {}", e.getMessage());
-            throw e;
-        } catch (org.springframework.dao.DataIntegrityViolationException e) {
-            logger.error("Violação de integridade ao salvar usuário: {}", e.getMessage());
-            throw new RuntimeException("Email já está em uso", e);
-        } catch (RuntimeException e) {
-            logger.error("Erro ao salvar usuário: {}", e.getMessage());
-            throw new RuntimeException("Erro interno do sistema", e);
+        } catch (DataAccessException e) {
+            throw new DatabaseException("salvar usuário", "Erro ao salvar usuário no banco de dados");
         }
     }
     
@@ -91,9 +105,7 @@ public class UsuarioService {
     }
 
     public Usuario findById(Long id) {
-        if (id == null || id <= 0) {
-            return null;
-        }
+        CrudValidationUtils.validateId(id, "Usuário");
         
         try {
             String cacheKey = "user_id_" + id;
@@ -102,18 +114,12 @@ public class UsuarioService {
                 return cached;
             }
             
-            Optional<Usuario> usuario = usuarioRepository.findById(id);
-            if (usuario.isPresent()) {
-                cacheService.put(cacheKey, usuario.get());
-                return usuario.get();
-            }
-            return null;
-        } catch (org.springframework.dao.DataAccessException e) {
-            logger.error("Erro de acesso aos dados ao buscar usuário por ID: {}", id);
-            return null;
-        } catch (RuntimeException e) {
-            logger.error("Erro ao buscar usuário por ID {}: {}", id, e.getMessage());
-            return null;
+            return CrudValidationUtils.validateResourceExists(
+                () -> usuarioRepository.findById(id).orElse(null),
+                "Usuário", id
+            );
+        } catch (DataAccessException e) {
+            throw new DatabaseException("buscar usuário", "Erro ao buscar usuário no banco de dados");
         }
     }
 
@@ -156,17 +162,23 @@ public class UsuarioService {
         }
     }
 
+    @Transactional
     public void delete(Long id) {
-        if (id == null || id <= 0) {
-            logger.warn("Tentativa de deletar usuário com ID inválido: {}", id);
-            return;
-        }
+        CrudValidationUtils.validateId(id, "Usuário");
+        
+        CrudValidationUtils.validateResourceExists(
+            () -> usuarioRepository.existsById(id) ? "exists" : null,
+            "Usuário", id
+        );
+        
         try {
             usuarioRepository.deleteById(id);
-        } catch (org.springframework.dao.DataAccessException e) {
-            logger.error("Erro de acesso aos dados ao deletar usuário com ID: {}", id, e);
-        } catch (RuntimeException e) {
-            logger.error("Erro ao deletar usuário com ID {}: {}", id, e.getMessage(), e);
+        } catch (DataAccessException e) {
+            if (e.getMessage() != null && e.getMessage().contains("foreign key")) {
+                throw new InvalidOperationException("deletar usuário", 
+                    "Usuário possui registros dependentes (clientes, técnicos, etc.)");
+            }
+            throw new DatabaseException("deletar usuário", "Erro ao deletar usuário do banco de dados");
         }
     }
 

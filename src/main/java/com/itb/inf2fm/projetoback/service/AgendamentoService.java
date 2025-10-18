@@ -1,6 +1,7 @@
 package com.itb.inf2fm.projetoback.service;
 
 import com.itb.inf2fm.projetoback.dto.AgendamentoRequest;
+import com.itb.inf2fm.projetoback.exception.*;
 import com.itb.inf2fm.projetoback.model.Agendamento;
 import com.itb.inf2fm.projetoback.model.Tecnico;
 import com.itb.inf2fm.projetoback.model.Usuario;
@@ -11,12 +12,16 @@ import com.itb.inf2fm.projetoback.repository.ServicoRepository;
 import com.itb.inf2fm.projetoback.repository.ClienteRepository;
 import com.itb.inf2fm.projetoback.model.Servico;
 import com.itb.inf2fm.projetoback.model.Cliente;
+import com.itb.inf2fm.projetoback.util.CrudValidationUtils;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -45,46 +50,66 @@ public class AgendamentoService {
         return agendamentoRepository.findById(id);
     }
 
+    @Transactional
     public Agendamento save(AgendamentoRequest request) {
-        if (request.getTecnicoId() == null) {
-            throw new IllegalArgumentException("tecnicoId é obrigatório");
-        }
-        if (request.getUsuarioId() == null) {
-            throw new IllegalArgumentException("usuarioId é obrigatório");
-        }
-
-        Agendamento agendamento = new Agendamento();
-        agendamento.setDataAgendamento(LocalDate.parse(request.getDataAgendamento()));
-        agendamento.setHoraAgendamento(request.getHoraAgendamento());
-        agendamento.setDescricao(request.getDescricao());
-        agendamento.setUrgencia(request.getUrgencia());
-        agendamento.setSituacao(request.getSituacao());
-        agendamento.setPreco(request.getPreco());
-
-        Tecnico tecnico = tecnicoRepository.findById(request.getTecnicoId())
-                .orElseThrow(() -> new IllegalArgumentException("Técnico não encontrado"));
-        
-
-        
-        agendamento.setTecnico(tecnico);
-
-        Usuario usuario = usuarioRepository.findById(request.getUsuarioId())
-                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
-        agendamento.setUsuario(usuario);
-        
-        if (request.getServicoId() != null) {
-            Servico servico = servicoRepository.findById(request.getServicoId())
-                    .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado"));
-            agendamento.setServico(servico);
+        if (request == null) {
+            throw new ValidationException("Dados do agendamento são obrigatórios");
         }
         
-        if (request.getClienteId() != null) {
-            Cliente cliente = clienteRepository.findById(request.getClienteId())
-                    .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado"));
-            agendamento.setCliente(cliente);
-        }
+        // Validações de campos obrigatórios
+        Map<String, Object> requiredFields = new HashMap<>();
+        requiredFields.put("tecnicoId", request.getTecnicoId());
+        requiredFields.put("usuarioId", request.getUsuarioId());
+        requiredFields.put("dataAgendamento", request.getDataAgendamento());
+        requiredFields.put("horaAgendamento", request.getHoraAgendamento());
+        
+        CrudValidationUtils.validateRequiredFields(requiredFields);
+        
+        try {
+            Agendamento agendamento = new Agendamento();
+            agendamento.setDataAgendamento(LocalDate.parse(request.getDataAgendamento()));
+            agendamento.setHoraAgendamento(request.getHoraAgendamento());
+            agendamento.setDescricao(request.getDescricao());
+            agendamento.setUrgencia(request.getUrgencia());
+            agendamento.setSituacao(request.getSituacao());
+            agendamento.setPreco(request.getPreco());
 
-        return agendamentoRepository.save(agendamento);
+            // Valida e busca técnico
+            Tecnico tecnico = CrudValidationUtils.validateResourceExists(
+                () -> tecnicoRepository.findById(request.getTecnicoId()).orElse(null),
+                "Técnico", request.getTecnicoId()
+            );
+            agendamento.setTecnico(tecnico);
+
+            // Valida e busca usuário
+            Usuario usuario = CrudValidationUtils.validateResourceExists(
+                () -> usuarioRepository.findById(request.getUsuarioId()).orElse(null),
+                "Usuário", request.getUsuarioId()
+            );
+            agendamento.setUsuario(usuario);
+            
+            // Valida serviço se fornecido
+            if (request.getServicoId() != null) {
+                Servico servico = CrudValidationUtils.validateResourceExists(
+                    () -> servicoRepository.findById(request.getServicoId()).orElse(null),
+                    "Serviço", request.getServicoId()
+                );
+                agendamento.setServico(servico);
+            }
+            
+            // Valida cliente se fornecido
+            if (request.getClienteId() != null) {
+                Cliente cliente = CrudValidationUtils.validateResourceExists(
+                    () -> clienteRepository.findById(request.getClienteId()).orElse(null),
+                    "Cliente", request.getClienteId()
+                );
+                agendamento.setCliente(cliente);
+            }
+
+            return agendamentoRepository.save(agendamento);
+        } catch (DataAccessException e) {
+            throw new DatabaseException("salvar agendamento", "Erro ao salvar agendamento no banco de dados");
+        }
     }
 
     public Agendamento update(Long id, AgendamentoRequest request) {
@@ -126,8 +151,20 @@ public class AgendamentoService {
         return null;
     }
 
+    @Transactional
     public void deleteById(Long id) {
-        agendamentoRepository.deleteById(id);
+        CrudValidationUtils.validateId(id, "Agendamento");
+        
+        CrudValidationUtils.validateResourceExists(
+            () -> agendamentoRepository.existsById(id) ? "exists" : null,
+            "Agendamento", id
+        );
+        
+        try {
+            agendamentoRepository.deleteById(id);
+        } catch (DataAccessException e) {
+            throw new DatabaseException("deletar agendamento", "Erro ao deletar agendamento do banco de dados");
+        }
     }
 
     public List<Agendamento> findByUsuarioId(Long usuarioId) {

@@ -36,24 +36,8 @@ public class RegiaoController {
 
     @PostMapping
     public ResponseEntity<Regiao> createRegiao(@RequestBody Regiao regiao) {
-        try {
-            if (regiao == null) {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            }
-            String nome = regiao.getNome();
-            if (nome == null || nome.trim().isEmpty()) {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            }
-            Regiao regiaoSalva = regiaoService.save(regiao);
-            
-            if (regiaoSalva.isValid()) {
-                return new ResponseEntity<>(regiaoSalva, HttpStatus.CREATED);
-            } else {
-                return new ResponseEntity<>(regiaoSalva, HttpStatus.BAD_REQUEST);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        Regiao regiaoSalva = regiaoService.save(regiao);
+        return new ResponseEntity<>(regiaoSalva, HttpStatus.CREATED);
     }
 
     @GetMapping
@@ -71,12 +55,7 @@ public class RegiaoController {
     @GetMapping("/{id}")
     public ResponseEntity<Regiao> getRegiaoById(@PathVariable Long id) {
         Regiao regiao = regiaoService.findById(id);
-        
-        if (regiao != null && regiao.isValid()) {
-            return new ResponseEntity<>(regiao, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<>(regiao, HttpStatus.OK);
     }
 
     @GetMapping("/nome/{nome}")
@@ -98,35 +77,13 @@ public class RegiaoController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Regiao> updateRegiao(@PathVariable Long id, @RequestBody Regiao regiao) {
-        if (id <= 0) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        if (regiao == null) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        String nome = regiao.getNome();
-        if (nome == null || nome.trim().isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
         regiao.setId(id);
         Regiao regiaoAtualizada = regiaoService.save(regiao);
-        
-        if (regiaoAtualizada.isValid()) {
-            return new ResponseEntity<>(regiaoAtualizada, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(regiaoAtualizada, HttpStatus.BAD_REQUEST);
-        }
+        return new ResponseEntity<>(regiaoAtualizada, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRegiao(@PathVariable Long id) {
-        if (id <= 0) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        Regiao regiao = regiaoService.findById(id);
-        if (regiao == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
         regiaoService.delete(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

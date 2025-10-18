@@ -69,11 +69,7 @@ public class UsuarioController {
             @Parameter(description = "ID do usuário") 
             @PathVariable Long id) {
         Usuario usuario = usuarioService.findById(id);
-        if (usuario != null) {
-            return ResponseEntity.ok(usuario);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(usuario);
     }
 
     @Operation(summary = "Atualizar usuário", description = "Atualiza os dados de um usuário existente")
