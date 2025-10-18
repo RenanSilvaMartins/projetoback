@@ -12,7 +12,6 @@ import java.util.List;
 public class Tecnico {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "cpf_cnpj", length = 14, nullable = false)
@@ -40,8 +39,8 @@ public class Tecnico {
     @Column(name = "especialidade", length = 100, nullable = false)
     private String especialidade;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "usuario_id")
+    @ManyToOne
+    @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
     @Column(name = "statusTecnico", length = 20, nullable = false)
